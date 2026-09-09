@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 
 const departmentRoutes = require("./routes/departmentRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
 
 const app = express();
 
@@ -16,11 +17,11 @@ app.get("/", (req, res) => {
   });
 });
 
-// register department routes
 app.use("/api/departments", departmentRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });
