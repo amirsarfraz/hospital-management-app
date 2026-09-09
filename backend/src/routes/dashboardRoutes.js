@@ -5,79 +5,132 @@ const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {
-    const [
-      patientsResult,
-      doctorsResult,
-      roomsResult,
-      unpaidBillsResult,
-      departmentsResult,
-    ] = await Promise.all([
-      supabase
-        .from("patients")
-        .select("*", { count: "exact", head: true }),
+    // Total patients
+    const {
+      count: patientCount,
+      error: patientError,
+    } = await supabase
+      .from("patients")
+      .select("*", {
+        count: "exact",
+        head: true,
+      });
 
-      supabase
-        .from("doctors")
-        .select("*", { count: "exact", head: true }),
+    if (patientError) {
+      throw patientError;
+    }
 
-      supabase
-        .from("rooms")
-        .select("*"),
+    // Total doctors
+    const {
+      count: doctorCount,
+      error: doctorError,
+    } = await supabase
+      .from("doctors")
+      .select("*", {
+        count: "exact",
+        head: true,
+      });
 
-      supabase
-        .from("bills")
-        .select("total_amount")
-        .eq("payment_status", "unpaid"),
+    if (doctorError) {
+      throw doctorError;
+    }
 
-      supabase
-        .from("departments")
-        .select(`
-          department_id,
-          name,
-          doctors(count)
-        `),
-    ]);
+    // Rooms
+    const {
+      data: rooms,
+      error: roomError,
+    } = await supabase
+      .from("rooms")
+      .select("*");
 
-    if (patientsResult.error) throw patientsResult.error;
-    if (doctorsResult.error) throw doctorsResult.error;
-    if (roomsResult.error) throw roomsResult.error;
-    if (unpaidBillsResult.error) throw unpaidBillsResult.error;
-    if (departmentsResult.error) throw departmentsResult.error;
+    if (roomError) {
+      throw roomError;
+    }
 
-    const totalPatients = patientsResult.count || 0;
-    const totalDoctors = doctorsResult.count || 0;
+    // Unpaid bills
+    const {
+      data: unpaidBills,
+      error: billError,
+    } = await supabase
+      .from("bills")
+      .select("bill_number, total_amount")
+      .eq("payment_status", "unpaid");
 
-    const rooms = roomsResult.data || [];
+    if (billError) {
+      throw billError;
+    }
 
-    const availableRooms = rooms.filter(
-      (room) => room.status === "available"
-    ).length;
+    // Departments
+    const {
+      data: departments,
+      error: departmentError,
+    } = await supabase
+      .from("departments")
+      .select("*")
+      .order("department_id", {
+        ascending: true,
+      });
 
-    const occupiedRooms = rooms.filter(
-      (room) => room.status === "occupied"
-    ).length;
+    if (departmentError) {
+      throw departmentError;
+    }
 
-    const unpaidBills = unpaidBillsResult.data || [];
+    // Recent patients
+    const {
+      data: recentPatients,
+      error: recentPatientError,
+    } = await supabase
+      .from("patients")
+      .select("*")
+      .order("created_at", {
+        ascending: false,
+      })
+      .limit(5);
 
-    const unpaidBillsTotal = unpaidBills.reduce(
-      (sum, bill) => sum + Number(bill.total_amount || 0),
-      0
-    );
+    if (recentPatientError) {
+      throw recentPatientError;
+    }
+
+    const availableRooms =
+      rooms?.filter(
+        (room) => room.status === "available"
+      ).length || 0;
+
+    const occupiedRooms =
+      rooms?.filter(
+        (room) => room.status === "occupied"
+      ).length || 0;
+
+    const unpaidBillsTotal =
+      unpaidBills?.reduce(
+        (total, bill) =>
+          total + Number(bill.total_amount),
+        0
+      ) || 0;
 
     res.status(200).json({
-      totalPatients,
-      totalDoctors,
+      totalPatients: patientCount || 0,
+      totalDoctors: doctorCount || 0,
+
       availableRooms,
       occupiedRooms,
+
       unpaidBillsTotal,
-      unpaidBillsCount: unpaidBills.length,
-      departments: departmentsResult.data || [],
+      unpaidBillsCount: unpaidBills?.length || 0,
+
+      departments: departments || [],
+
+      recentPatients: recentPatients || [],
     });
   } catch (error) {
-    console.error("Dashboard error:", error);
+    console.error(
+      "Dashboard API Error:",
+      error
+    );
 
     res.status(500).json({
       message: "Failed to load dashboard data",
+      error: error.message,
     });
   }
 });
