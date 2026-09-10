@@ -196,26 +196,107 @@ const options = {
             treatment_id: {
               type: "integer",
               example: 1,
-            },
-            treatment_date: {
-              type: "string",
-              format: "date",
-              example: "2026-09-10",
-            },
-            diagnosis: {
-              type: "string",
-              example: "Viral infection",
-            },
-            doctor_id: {
-              type: "integer",
-              example: 1,
-            },
-            patient_id: {
-              type: "integer",
-              example: 2,
+              },
+          
+              patient_id: {
+                type: "integer",
+                example: 2,
+              },
+          
+              doctor_id: {
+                type: "integer",
+                example: 1,
+              },
+          
+              treatment_date: {
+                type: "string",
+                format: "date",
+                example: "2026-09-10",
+              },
+          
+              diagnosis: {
+                type: "string",
+                example: "High blood pressure",
+              },
+          
+              medication: {
+                type: "string",
+                nullable: true,
+                example: "Amlodipine 5mg once daily",
+              },
+          
+              created_at: {
+                type: "string",
+                format: "date-time",
+                example: "2026-09-10T12:30:00Z",
+              },
+          
+              patients: {
+                type: "object",
+                nullable: true,
+                properties: {
+                  patient_id: {
+                    type: "integer",
+                    example: 2,
+                  },
+                  first_name: {
+                    type: "string",
+                    example: "Ali",
+                  },
+                  last_name: {
+                    type: "string",
+                    example: "Hassan",
+                  },
+                  phone_number: {
+                    type: "string",
+                    example: "03001234567",
+                  },
+                },
+              },
+          
+              doctors: {
+                type: "object",
+                nullable: true,
+                properties: {
+                  doctor_id: {
+                    type: "integer",
+                    example: 1,
+                  },
+                  first_name: {
+                    type: "string",
+                    example: "Ahmed",
+                  },
+                  last_name: {
+                    type: "string",
+                    example: "Khan",
+                  },
+                  specialization: {
+                    type: "string",
+                    example: "Cardiologist",
+                  },
+                  department_id: {
+                    type: "integer",
+                    example: 1,
+                  },
+          
+                  departments: {
+                    type: "object",
+                    nullable: true,
+                    properties: {
+                      department_id: {
+                        type: "integer",
+                        example: 1,
+                      },
+                      name: {
+                        type: "string",
+                        example: "Cardiology",
+                      },
+                    },
+                  },
+                },
+              },
             },
           },
-        },
 
         Error: {
           type: "object",

@@ -10,6 +10,7 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
 const nurseRoutes = require("./routes/nurseRoutes");
 const patientRoutes = require("./routes/patientRoutes");
+const treatmentRoutes = require("./routes/treatmentRoutes");
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/nurses", nurseRoutes);
 app.use("/api/patients", patientRoutes);
+app.use("/api/treatments", treatmentRoutes);
 
 const PORT = process.env.PORT || 5000;
 
