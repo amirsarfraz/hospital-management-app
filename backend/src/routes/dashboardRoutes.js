@@ -3,6 +3,74 @@ const supabase = require("../config/supabase");
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * tags:
+ *   name: Dashboard
+ *   description: Dashboard summary and statistics APIs
+ */
+
+/**
+ * @swagger
+ * /api/dashboard:
+ *   get:
+ *     summary: Get dashboard statistics
+ *     description: >
+ *       Returns the main dashboard summary including total patients,
+ *       total doctors, available rooms, occupied rooms, unpaid bills,
+ *       departments, and recent patients.
+ *     tags:
+ *       - Dashboard
+ *     responses:
+ *       200:
+ *         description: Dashboard data loaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalPatients:
+ *                   type: integer
+ *                   example: 25
+ *                 totalDoctors:
+ *                   type: integer
+ *                   example: 8
+ *                 availableRooms:
+ *                   type: integer
+ *                   example: 12
+ *                 occupiedRooms:
+ *                   type: integer
+ *                   example: 5
+ *                 unpaidBillsTotal:
+ *                   type: number
+ *                   format: float
+ *                   example: 25000
+ *                 unpaidBillsCount:
+ *                   type: integer
+ *                   example: 4
+ *                 departments:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Department'
+ *                 recentPatients:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Patient'
+ *       500:
+ *         description: Failed to load dashboard data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Failed to load dashboard data
+ *                 error:
+ *                   type: string
+ *                   example: Database query failed
+ */
+
 router.get("/", async (req, res) => {
   try {
     // Total patients
@@ -116,11 +184,14 @@ router.get("/", async (req, res) => {
       occupiedRooms,
 
       unpaidBillsTotal,
-      unpaidBillsCount: unpaidBills?.length || 0,
+      unpaidBillsCount:
+        unpaidBills?.length || 0,
 
-      departments: departments || [],
+      departments:
+        departments || [],
 
-      recentPatients: recentPatients || [],
+      recentPatients:
+        recentPatients || [],
     });
   } catch (error) {
     console.error(
@@ -129,8 +200,13 @@ router.get("/", async (req, res) => {
     );
 
     res.status(500).json({
-      message: "Failed to load dashboard data",
-      error: error.message,
+      message:
+        "Failed to load dashboard data",
+
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unknown error",
     });
   }
 });

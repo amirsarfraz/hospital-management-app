@@ -3,12 +3,32 @@ const supabase = require("../config/supabase");
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * tags:
+ *   name: Patients
+ *   description: Patient management APIs
+ */
 
-// ======================================================
-// GET ALL PATIENTS
-// GET /api/patients
-// ======================================================
-
+/**
+ * @swagger
+ * /api/patients:
+ *   get:
+ *     summary: Get all patients
+ *     tags:
+ *       - Patients
+ *     responses:
+ *       200:
+ *         description: List of all patients
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Patient'
+ *       500:
+ *         description: Internal server error
+ */
 router.get("/", async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -32,12 +52,33 @@ router.get("/", async (req, res) => {
   }
 });
 
-
-// ======================================================
-// GET SINGLE PATIENT
-// GET /api/patients/:id
-// ======================================================
-
+/**
+ * @swagger
+ * /api/patients/{id}:
+ *   get:
+ *     summary: Get patient by ID
+ *     tags:
+ *       - Patients
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Patient ID
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *     responses:
+ *       200:
+ *         description: Patient details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Patient'
+ *       404:
+ *         description: Patient not found
+ *       500:
+ *         description: Internal server error
+ */
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -64,12 +105,58 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-
-// ======================================================
-// CREATE PATIENT
-// POST /api/patients
-// ======================================================
-
+/**
+ * @swagger
+ * /api/patients:
+ *   post:
+ *     summary: Create a new patient
+ *     tags:
+ *       - Patients
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - first_name
+ *               - last_name
+ *               - date_of_birth
+ *               - gender
+ *               - phone_number
+ *             properties:
+ *               first_name:
+ *                 type: string
+ *                 example: Ali
+ *               last_name:
+ *                 type: string
+ *                 example: Hassan
+ *               date_of_birth:
+ *                 type: string
+ *                 format: date
+ *                 example: "1994-05-10"
+ *               gender:
+ *                 type: string
+ *                 enum:
+ *                   - Male
+ *                   - Female
+ *                   - Other
+ *                 example: Male
+ *               address:
+ *                 type: string
+ *                 nullable: true
+ *                 example: Lahore, Pakistan
+ *               phone_number:
+ *                 type: string
+ *                 example: "03001234567"
+ *     responses:
+ *       201:
+ *         description: Patient created successfully
+ *       400:
+ *         description: Validation error
+ *       500:
+ *         description: Internal server error
+ */
 router.post("/", async (req, res) => {
   try {
     const {
@@ -128,12 +215,68 @@ router.post("/", async (req, res) => {
   }
 });
 
-
-// ======================================================
-// UPDATE PATIENT
-// PUT /api/patients/:id
-// ======================================================
-
+/**
+ * @swagger
+ * /api/patients/{id}:
+ *   put:
+ *     summary: Update a patient
+ *     tags:
+ *       - Patients
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Patient ID
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - first_name
+ *               - last_name
+ *               - date_of_birth
+ *               - gender
+ *               - phone_number
+ *             properties:
+ *               first_name:
+ *                 type: string
+ *                 example: Ali
+ *               last_name:
+ *                 type: string
+ *                 example: Hassan
+ *               date_of_birth:
+ *                 type: string
+ *                 format: date
+ *                 example: "1994-05-10"
+ *               gender:
+ *                 type: string
+ *                 enum:
+ *                   - Male
+ *                   - Female
+ *                   - Other
+ *                 example: Male
+ *               address:
+ *                 type: string
+ *                 nullable: true
+ *                 example: Islamabad, Pakistan
+ *               phone_number:
+ *                 type: string
+ *                 example: "03009999999"
+ *     responses:
+ *       200:
+ *         description: Patient updated successfully
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: Patient not found
+ *       500:
+ *         description: Internal server error
+ */
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -176,8 +319,7 @@ router.put("/:id", async (req, res) => {
 
     if (error || !data) {
       return res.status(404).json({
-        message:
-          error?.message || "Patient not found",
+        message: error?.message || "Patient not found",
       });
     }
 
@@ -194,12 +336,37 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-
-// ======================================================
-// DELETE PATIENT
-// DELETE /api/patients/:id
-// ======================================================
-
+/**
+ * @swagger
+ * /api/patients/{id}:
+ *   delete:
+ *     summary: Delete a patient
+ *     tags:
+ *       - Patients
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Patient ID
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *     responses:
+ *       200:
+ *         description: Patient deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Patient deleted successfully
+ *       404:
+ *         description: Patient not found
+ *       500:
+ *         description: Internal server error
+ */
 router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;

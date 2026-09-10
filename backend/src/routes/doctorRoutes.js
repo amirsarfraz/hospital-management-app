@@ -3,12 +3,32 @@ const supabase = require("../config/supabase");
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * tags:
+ *   name: Doctors
+ *   description: Doctor management APIs
+ */
 
-// ======================================================
-// 1. GET ALL DOCTORS
-// GET /api/doctors
-// ======================================================
-
+/**
+ * @swagger
+ * /api/doctors:
+ *   get:
+ *     summary: Get all doctors
+ *     tags:
+ *       - Doctors
+ *     responses:
+ *       200:
+ *         description: List of all doctors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Doctor'
+ *       500:
+ *         description: Internal server error
+ */
 router.get("/", async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -44,13 +64,33 @@ router.get("/", async (req, res) => {
   }
 });
 
-
-// ======================================================
-// 2. GET SINGLE DOCTOR
-// GET /api/doctors/:id
-// Example: GET /api/doctors/1
-// ======================================================
-
+/**
+ * @swagger
+ * /api/doctors/{id}:
+ *   get:
+ *     summary: Get doctor by ID
+ *     tags:
+ *       - Doctors
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Doctor ID
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *     responses:
+ *       200:
+ *         description: Doctor details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Doctor'
+ *       404:
+ *         description: Doctor not found
+ *       500:
+ *         description: Internal server error
+ */
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -89,12 +129,51 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-
-// ======================================================
-// 3. CREATE DOCTOR
-// POST /api/doctors
-// ======================================================
-
+/**
+ * @swagger
+ * /api/doctors:
+ *   post:
+ *     summary: Create a new doctor
+ *     tags:
+ *       - Doctors
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - first_name
+ *               - last_name
+ *               - specialization
+ *               - department_id
+ *             properties:
+ *               first_name:
+ *                 type: string
+ *                 example: Ahmed
+ *               last_name:
+ *                 type: string
+ *                 example: Khan
+ *               specialization:
+ *                 type: string
+ *                 example: Cardiologist
+ *               years_experience:
+ *                 type: integer
+ *                 example: 8
+ *               contact_number:
+ *                 type: string
+ *                 example: "03001111111"
+ *               department_id:
+ *                 type: integer
+ *                 example: 1
+ *     responses:
+ *       201:
+ *         description: Doctor created successfully
+ *       400:
+ *         description: Validation error
+ *       500:
+ *         description: Internal server error
+ */
 router.post("/", async (req, res) => {
   try {
     const {
@@ -106,7 +185,6 @@ router.post("/", async (req, res) => {
       department_id,
     } = req.body;
 
-    // Basic validation
     if (
       !first_name ||
       !last_name ||
@@ -174,13 +252,61 @@ router.post("/", async (req, res) => {
   }
 });
 
-
-// ======================================================
-// 4. UPDATE DOCTOR
-// PUT /api/doctors/:id
-// Example: PUT /api/doctors/1
-// ======================================================
-
+/**
+ * @swagger
+ * /api/doctors/{id}:
+ *   put:
+ *     summary: Update a doctor
+ *     tags:
+ *       - Doctors
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Doctor ID
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - first_name
+ *               - last_name
+ *               - specialization
+ *               - department_id
+ *             properties:
+ *               first_name:
+ *                 type: string
+ *                 example: Ahmed
+ *               last_name:
+ *                 type: string
+ *                 example: Khan
+ *               specialization:
+ *                 type: string
+ *                 example: Senior Cardiologist
+ *               years_experience:
+ *                 type: integer
+ *                 example: 10
+ *               contact_number:
+ *                 type: string
+ *                 example: "03001111111"
+ *               department_id:
+ *                 type: integer
+ *                 example: 1
+ *     responses:
+ *       200:
+ *         description: Doctor updated successfully
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: Doctor not found
+ *       500:
+ *         description: Internal server error
+ */
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -260,18 +386,41 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-
-// ======================================================
-// 5. DELETE DOCTOR
-// DELETE /api/doctors/:id
-// Example: DELETE /api/doctors/1
-// ======================================================
-
+/**
+ * @swagger
+ * /api/doctors/{id}:
+ *   delete:
+ *     summary: Delete a doctor
+ *     tags:
+ *       - Doctors
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Doctor ID
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *     responses:
+ *       200:
+ *         description: Doctor deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Doctor deleted successfully
+ *       404:
+ *         description: Doctor not found
+ *       500:
+ *         description: Internal server error
+ */
 router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    // First check whether doctor exists
     const { data: doctor, error: findError } = await supabase
       .from("doctors")
       .select("doctor_id")
@@ -312,6 +461,5 @@ router.delete("/:id", async (req, res) => {
     });
   }
 });
-
 
 module.exports = router;
