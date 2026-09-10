@@ -11,6 +11,7 @@ const doctorRoutes = require("./routes/doctorRoutes");
 const nurseRoutes = require("./routes/nurseRoutes");
 const patientRoutes = require("./routes/patientRoutes");
 const treatmentRoutes = require("./routes/treatmentRoutes");
+const roomRoutes = require("./routes/roomRoutes");
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use("/api/doctors", doctorRoutes);
 app.use("/api/nurses", nurseRoutes);
 app.use("/api/patients", patientRoutes);
 app.use("/api/treatments", treatmentRoutes);
+app.use("/api/rooms", roomRoutes);
 
 const PORT = process.env.PORT || 5000;
 
