@@ -187,70 +187,70 @@ const options = {
 
                 Bill: {
                     type: "object",
-                  
+
                     properties: {
-                      bill_number: {
-                        type: "integer",
-                        example: 1,
-                      },
-                  
-                      patient_id: {
-                        type: "integer",
-                        example: 1,
-                      },
-                  
-                      total_amount: {
-                        type: "number",
-                        format: "float",
-                        example: 8500,
-                      },
-                  
-                      payment_status: {
-                        type: "string",
-                        enum: ["paid", "unpaid"],
-                        example: "unpaid",
-                      },
-                  
-                      date_issued: {
-                        type: "string",
-                        format: "date",
-                        example: "2026-09-10",
-                      },
-                  
-                      created_at: {
-                        type: "string",
-                        format: "date-time",
-                        example: "2026-09-10T12:30:00Z",
-                      },
-                  
-                      patients: {
-                        type: "object",
-                        nullable: true,
-                  
-                        properties: {
-                          patient_id: {
+                        bill_number: {
                             type: "integer",
                             example: 1,
-                          },
-                  
-                          first_name: {
-                            type: "string",
-                            example: "Ali",
-                          },
-                  
-                          last_name: {
-                            type: "string",
-                            example: "Hassan",
-                          },
-                  
-                          phone_number: {
-                            type: "string",
-                            example: "03001234567",
-                          },
                         },
-                      },
+
+                        patient_id: {
+                            type: "integer",
+                            example: 1,
+                        },
+
+                        total_amount: {
+                            type: "number",
+                            format: "float",
+                            example: 8500,
+                        },
+
+                        payment_status: {
+                            type: "string",
+                            enum: ["paid", "unpaid"],
+                            example: "unpaid",
+                        },
+
+                        date_issued: {
+                            type: "string",
+                            format: "date",
+                            example: "2026-09-10",
+                        },
+
+                        created_at: {
+                            type: "string",
+                            format: "date-time",
+                            example: "2026-09-10T12:30:00Z",
+                        },
+
+                        patients: {
+                            type: "object",
+                            nullable: true,
+
+                            properties: {
+                                patient_id: {
+                                    type: "integer",
+                                    example: 1,
+                                },
+
+                                first_name: {
+                                    type: "string",
+                                    example: "Ali",
+                                },
+
+                                last_name: {
+                                    type: "string",
+                                    example: "Hassan",
+                                },
+
+                                phone_number: {
+                                    type: "string",
+                                    example: "03001234567",
+                                },
+                            },
+                        },
                     },
-                  },
+                },
 
                 Treatment: {
                     type: "object",
