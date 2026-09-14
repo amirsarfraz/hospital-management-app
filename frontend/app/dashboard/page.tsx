@@ -2,19 +2,18 @@
 
 import { useEffect, useState } from "react";
 
-type DashboardData = {
-  totalPatients: number;
-  totalDoctors: number;
-  availableRooms: number;
-  occupiedRooms: number;
-  unpaidBillsTotal: number;
-  unpaidBillsCount: number;
-};
+import { getDashboardData } from "@/services/dashboardService";
+import type { DashboardData } from "@/types/dashboard";
 
 export default function DashboardPage() {
-  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [dashboard, setDashboard] =
+    useState<DashboardData | null>(null);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -22,15 +21,8 @@ export default function DashboardPage() {
         setLoading(true);
         setError("");
 
-        const response = await fetch(
-          "http://localhost:5000/api/dashboard"
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to load dashboard");
-        }
-
-        const data = await response.json();
+        const data =
+          await getDashboardData();
 
         setDashboard(data);
       } catch (error) {
@@ -126,7 +118,8 @@ export default function DashboardPage() {
           </p>
 
           <h2 className="mt-3 text-3xl font-bold">
-            ${dashboard.unpaidBillsTotal.toLocaleString()}
+            $
+            {dashboard.unpaidBillsTotal.toLocaleString()}
           </h2>
 
           <p className="mt-2 text-sm text-slate-500">

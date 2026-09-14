@@ -2,15 +2,19 @@
 
 import { useEffect, useState } from "react";
 
+import {
+  getDepartments,
+  createDepartment,
+  updateDepartment,
+  deleteDepartment,
+} from "@/services/departmentService";
+
 import DepartmentForm from "@/components/departments/DepartmentForm";
 import DepartmentTable from "@/components/departments/DepartmentTable";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import Toast from "@/components/ui/Toast";
 
 export default function DepartmentsPage() {
-  const API_URL =
-    "http://localhost:5000/api/departments";
-
   const [departments, setDepartments] =
     useState([]);
 
@@ -23,7 +27,7 @@ export default function DepartmentsPage() {
   const [deleteLoading, setDeleteLoading] =
     useState(false);
 
-  const [deleteDepartment, setDeleteDepartment] =
+  const [selectedDepartment, setSelectedDepartment] =
     useState(null);
 
   const [toast, setToast] = useState({
@@ -37,7 +41,10 @@ export default function DepartmentsPage() {
     contact_phone: "",
   });
 
-  const showToast = (message, type = "success") => {
+  const showToast = (
+    message,
+    type = "success"
+  ) => {
     setToast({
       message,
       type,
@@ -51,27 +58,23 @@ export default function DepartmentsPage() {
     }, 3000);
   };
 
-  const fetchDepartments = async () => {
+  const loadDepartments = async () => {
     try {
-      const response = await fetch(API_URL);
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.message ||
-            "Failed to load departments"
-        );
-      }
+      const data = await getDepartments();
 
       setDepartments(data);
     } catch (error) {
-      showToast(error.message, "error");
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Failed to load departments",
+        "error"
+      );
     }
   };
 
   useEffect(() => {
-    fetchDepartments();
+    loadDepartments();
   }, []);
 
   const handleChange = (e) => {
@@ -113,37 +116,18 @@ export default function DepartmentsPage() {
     try {
       setLoading(true);
 
-      const url = editingId
-        ? `${API_URL}/${editingId}`
-        : API_URL;
-
-      const method = editingId
-        ? "PUT"
-        : "POST";
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type":
-            "application/json",
-        },
-        body: JSON.stringify(form),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.message ||
-            "Something went wrong"
-        );
-      }
-
       if (editingId) {
+        await updateDepartment(
+          editingId,
+          form
+        );
+
         showToast(
           "Department updated successfully"
         );
       } else {
+        await createDepartment(form);
+
         showToast(
           "Department added successfully"
         );
@@ -151,9 +135,14 @@ export default function DepartmentsPage() {
 
       resetForm();
 
-      await fetchDepartments();
+      await loadDepartments();
     } catch (error) {
-      showToast(error.message, "error");
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong",
+        "error"
+      );
     } finally {
       setLoading(false);
     }
@@ -181,41 +170,33 @@ export default function DepartmentsPage() {
   const handleDeleteClick = (
     department
   ) => {
-    setDeleteDepartment(department);
+    setSelectedDepartment(department);
   };
 
   const confirmDelete = async () => {
-    if (!deleteDepartment) return;
+    if (!selectedDepartment) return;
 
     try {
       setDeleteLoading(true);
 
-      const response = await fetch(
-        `${API_URL}/${deleteDepartment.department_id}`,
-        {
-          method: "DELETE",
-        }
+      await deleteDepartment(
+        selectedDepartment.department_id
       );
-
-      const data =
-        await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.message ||
-            "Failed to delete department"
-        );
-      }
 
       showToast(
         "Department deleted successfully"
       );
 
-      setDeleteDepartment(null);
+      setSelectedDepartment(null);
 
-      await fetchDepartments();
+      await loadDepartments();
     } catch (error) {
-      showToast(error.message, "error");
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Failed to delete department",
+        "error"
+      );
     } finally {
       setDeleteLoading(false);
     }
@@ -235,18 +216,18 @@ export default function DepartmentsPage() {
       />
 
       <ConfirmModal
-        open={!!deleteDepartment}
+        open={!!selectedDepartment}
         title="Delete Department"
         message={
-          deleteDepartment
-            ? `Are you sure you want to delete "${deleteDepartment.name}"? This action cannot be undone.`
+          selectedDepartment
+            ? `Are you sure you want to delete "${selectedDepartment.name}"? This action cannot be undone.`
             : ""
         }
         confirmText="Delete"
         loading={deleteLoading}
         onConfirm={confirmDelete}
         onCancel={() =>
-          setDeleteDepartment(null)
+          setSelectedDepartment(null)
         }
       />
 

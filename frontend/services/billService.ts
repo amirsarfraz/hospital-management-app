@@ -2,9 +2,9 @@ import type {
     Bill,
     BillFormData,
   } from "@/types/bill";
+  import API_BASE_URL from "@/lib/api";
   
-  const API_URL =
-    "http://localhost:5000/api/bills";
+  const API_URL = `${API_BASE_URL}/api/bills`;
   
   export async function getBills(): Promise<Bill[]> {
     const response = await fetch(API_URL);
