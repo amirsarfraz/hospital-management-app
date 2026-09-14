@@ -2,7 +2,6 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./config/swagger");
 
@@ -17,11 +16,9 @@ const billRoutes = require("./routes/billRoutes");
 
 const app = express();
 
-
 // ==============================
 // CORS
 // ==============================
-
 const allowedOrigins = [
   "http://localhost:3000",
   process.env.FRONTEND_URL,
@@ -34,29 +31,23 @@ app.use(
   })
 );
 
-
 // ==============================
 // MIDDLEWARE
 // ==============================
-
 app.use(express.json());
-
 
 // ==============================
 // ROOT ROUTE
 // ==============================
-
 app.get("/", (req, res) => {
-  res.json({
+  res.status(200).json({
     message: "Hospital Management API is running",
   });
 });
 
-
 // ==============================
 // SWAGGER
 // ==============================
-
 app.use(
   "/api-docs",
   swaggerUi.serve,
@@ -67,11 +58,9 @@ app.use(
   })
 );
 
-
 // ==============================
 // API ROUTES
 // ==============================
-
 app.use("/api/departments", departmentRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/doctors", doctorRoutes);
@@ -81,13 +70,16 @@ app.use("/api/treatments", treatmentRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/bills", billRoutes);
 
-
 // ==============================
-// SERVER
+// LOCAL SERVER ONLY
 // ==============================
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 5000;
 
-const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Required for deployment platforms like Vercel
+module.exports = app;
