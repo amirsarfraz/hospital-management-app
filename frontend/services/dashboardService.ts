@@ -1,12 +1,9 @@
+import API_BASE_URL from "@/lib/api";
 import type { DashboardData } from "@/types/dashboard";
-
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:5000";
 
 export async function getDashboardData(): Promise<DashboardData> {
   const response = await fetch(
-    `${API_URL}/api/dashboard`
+    `${API_BASE_URL}/api/dashboard`
   );
 
   if (!response.ok) {

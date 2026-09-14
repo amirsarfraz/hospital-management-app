@@ -1,6 +1,6 @@
 import type { NurseFormData } from "@/types/nurse";
-
-const API_URL = "http://localhost:5000/api/nurses";
+import API_BASE_URL from "@/lib/api";
+const API_URL = `${API_BASE_URL}/api/nurses`;
 
 export async function getNurses() {
   const response = await fetch(API_URL);

@@ -2,9 +2,9 @@ import type {
     Treatment,
     TreatmentFormData,
   } from "@/types/treatment";
+  import API_BASE_URL from "@/lib/api";
   
-  const API_URL =
-    "http://localhost:5000/api/treatments";
+  const API_URL = `${API_BASE_URL}/api/treatments`;
   
   export async function getTreatments(): Promise<
     Treatment[]
