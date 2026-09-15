@@ -1,11 +1,14 @@
 "use client";
-
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 
 import { getDashboardData } from "@/services/dashboardService";
 import type { DashboardData } from "@/types/dashboard";
 
 export default function DashboardPage() {
+  const router = useRouter();
+const [authLoading, setAuthLoading] = useState(true);
   const [dashboard, setDashboard] =
     useState<DashboardData | null>(null);
 
@@ -40,6 +43,30 @@ export default function DashboardPage() {
 
     fetchDashboard();
   }, []);
+  useEffect(() => {
+    const checkAuth = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+  
+      if (!session) {
+        router.replace("/login");
+        return;
+      }
+  
+      setAuthLoading(false);
+    };
+  
+    checkAuth();
+  }, [router]);
+  
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p>Checking authentication...</p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

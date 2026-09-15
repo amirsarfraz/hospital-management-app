@@ -13,6 +13,7 @@ const patientRoutes = require("./routes/patientRoutes");
 const treatmentRoutes = require("./routes/treatmentRoutes");
 const roomRoutes = require("./routes/roomRoutes");
 const billRoutes = require("./routes/billRoutes");
+const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 
@@ -69,6 +70,7 @@ app.use("/api/patients", patientRoutes);
 app.use("/api/treatments", treatmentRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/bills", billRoutes);
+app.use("/api/auth", authRoutes);
 
 // ==============================
 // LOCAL SERVER ONLY
