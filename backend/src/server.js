@@ -5,6 +5,7 @@ const cors = require("cors");
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./config/swagger");
 
+const adminUserRoutes = require("./routes/adminUserRoutes");
 const departmentRoutes = require("./routes/departmentRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
@@ -14,6 +15,7 @@ const treatmentRoutes = require("./routes/treatmentRoutes");
 const roomRoutes = require("./routes/roomRoutes");
 const billRoutes = require("./routes/billRoutes");
 const authRoutes = require("./routes/authRoutes");
+
 
 const app = express();
 
@@ -71,6 +73,7 @@ app.use("/api/treatments", treatmentRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/bills", billRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/admin/users",adminUserRoutes);
 
 // ==============================
 // LOCAL SERVER ONLY
