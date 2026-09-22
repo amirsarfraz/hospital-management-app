@@ -1,135 +1,67 @@
 import type {
-    Treatment,
-    TreatmentFormData,
-  } from "@/types/treatment";
-  import API_BASE_URL from "@/lib/api";
-  
-  const API_URL = `${API_BASE_URL}/api/treatments`;
-  
-  export async function getTreatments(): Promise<
-    Treatment[]
-  > {
-    const response = await fetch(API_URL);
-  
-    const data = await response.json();
-  
-    if (!response.ok) {
-      throw new Error(
-        data.message ||
-          "Failed to fetch treatments"
-      );
-    }
-  
-    return data;
-  }
-  
-  export async function getTreatment(
-    id: number
-  ): Promise<Treatment> {
-    const response = await fetch(
-      `${API_URL}/${id}`
-    );
-  
-    const data = await response.json();
-  
-    if (!response.ok) {
-      throw new Error(
-        data.message ||
-          "Failed to fetch treatment"
-      );
-    }
-  
-    return data;
-  }
-  
-  export async function createTreatment(
-    form: TreatmentFormData
-  ) {
-    const response = await fetch(API_URL, {
-      method: "POST",
-  
-      headers: {
-        "Content-Type": "application/json",
-      },
-  
+  Treatment,
+  TreatmentFormData,
+} from "@/types/treatment";
+
+import { apiRequest } from "@/lib/api";
+
+const API_URL = "/api/treatments";
+
+export async function getTreatments(): Promise<
+  Treatment[]
+> {
+  return apiRequest<Treatment[]>(API_URL);
+}
+
+export async function getTreatment(
+  id: number
+): Promise<Treatment> {
+  return apiRequest<Treatment>(
+    `${API_URL}/${id}`
+  );
+}
+
+export async function createTreatment(
+  form: TreatmentFormData
+) {
+  return apiRequest(API_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      ...form,
+      patient_id:
+        Number(form.patient_id),
+      doctor_id:
+        Number(form.doctor_id),
+    }),
+  });
+}
+
+export async function updateTreatment(
+  id: number,
+  form: TreatmentFormData
+) {
+  return apiRequest(
+    `${API_URL}/${id}`,
+    {
+      method: "PUT",
       body: JSON.stringify({
         ...form,
-  
         patient_id:
           Number(form.patient_id),
-  
         doctor_id:
           Number(form.doctor_id),
       }),
-    });
-  
-    const data = await response.json();
-  
-    if (!response.ok) {
-      throw new Error(
-        data.message ||
-          "Failed to create treatment"
-      );
     }
-  
-    return data;
-  }
-  
-  export async function updateTreatment(
-    id: number,
-    form: TreatmentFormData
-  ) {
-    const response = await fetch(
-      `${API_URL}/${id}`,
-      {
-        method: "PUT",
-  
-        headers: {
-          "Content-Type": "application/json",
-        },
-  
-        body: JSON.stringify({
-          ...form,
-  
-          patient_id:
-            Number(form.patient_id),
-  
-          doctor_id:
-            Number(form.doctor_id),
-        }),
-      }
-    );
-  
-    const data = await response.json();
-  
-    if (!response.ok) {
-      throw new Error(
-        data.message ||
-          "Failed to update treatment"
-      );
+  );
+}
+
+export async function deleteTreatment(
+  id: number
+) {
+  return apiRequest(
+    `${API_URL}/${id}`,
+    {
+      method: "DELETE",
     }
-  
-    return data;
-  }
-  
-  export async function deleteTreatment(
-    id: number
-  ) {
-    const response = await fetch(
-      `${API_URL}/${id}`,
-      {
-        method: "DELETE",
-      }
-    );
-  
-    const data = await response.json();
-  
-    if (!response.ok) {
-      throw new Error(
-        data.message ||
-          "Failed to delete treatment"
-      );
-    }
-  
-    return data;
-  }
+  );
+}

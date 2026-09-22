@@ -1,114 +1,55 @@
 import type {
-    Patient,
-    PatientFormData,
-  } from "@/types/patient";
-  import API_BASE_URL from "@/lib/api";
-  
-  const API_URL = `${API_BASE_URL}/api/patients`;
-  
-  export async function getPatients(): Promise<
-    Patient[]
-  > {
-    const response = await fetch(API_URL);
-  
-    const data = await response.json();
-  
-    if (!response.ok) {
-      throw new Error(
-        data.message || "Failed to fetch patients"
-      );
-    }
-  
-    return data;
-  }
-  
-  export async function getPatient(
-    id: number
-  ): Promise<Patient> {
-    const response = await fetch(
-      `${API_URL}/${id}`
-    );
-  
-    const data = await response.json();
-  
-    if (!response.ok) {
-      throw new Error(
-        data.message || "Failed to fetch patient"
-      );
-    }
-  
-    return data;
-  }
-  
-  export async function createPatient(
-    form: PatientFormData
-  ) {
-    const response = await fetch(API_URL, {
-      method: "POST",
-  
-      headers: {
-        "Content-Type": "application/json",
-      },
-  
+  Patient,
+  PatientFormData,
+} from "@/types/patient";
+
+import { apiRequest } from "@/lib/api";
+
+const API_URL = "/api/patients";
+
+export async function getPatients(): Promise<
+  Patient[]
+> {
+  return apiRequest<Patient[]>(API_URL);
+}
+
+export async function getPatient(
+  id: number
+): Promise<Patient> {
+  return apiRequest<Patient>(
+    `${API_URL}/${id}`
+  );
+}
+
+export async function createPatient(
+  form: PatientFormData
+) {
+  return apiRequest(API_URL, {
+    method: "POST",
+    body: JSON.stringify(form),
+  });
+}
+
+export async function updatePatient(
+  id: number,
+  form: PatientFormData
+) {
+  return apiRequest(
+    `${API_URL}/${id}`,
+    {
+      method: "PUT",
       body: JSON.stringify(form),
-    });
-  
-    const data = await response.json();
-  
-    if (!response.ok) {
-      throw new Error(
-        data.message || "Failed to create patient"
-      );
     }
-  
-    return data;
-  }
-  
-  export async function updatePatient(
-    id: number,
-    form: PatientFormData
-  ) {
-    const response = await fetch(
-      `${API_URL}/${id}`,
-      {
-        method: "PUT",
-  
-        headers: {
-          "Content-Type": "application/json",
-        },
-  
-        body: JSON.stringify(form),
-      }
-    );
-  
-    const data = await response.json();
-  
-    if (!response.ok) {
-      throw new Error(
-        data.message || "Failed to update patient"
-      );
+  );
+}
+
+export async function deletePatient(
+  id: number
+) {
+  return apiRequest(
+    `${API_URL}/${id}`,
+    {
+      method: "DELETE",
     }
-  
-    return data;
-  }
-  
-  export async function deletePatient(
-    id: number
-  ) {
-    const response = await fetch(
-      `${API_URL}/${id}`,
-      {
-        method: "DELETE",
-      }
-    );
-  
-    const data = await response.json();
-  
-    if (!response.ok) {
-      throw new Error(
-        data.message || "Failed to delete patient"
-      );
-    }
-  
-    return data;
-  }
+  );
+}
