@@ -5,8 +5,8 @@ const cors = require("cors");
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./config/swagger");
 
-const adminUserRoutes = require("./routes/adminUserRoutes");
 const departmentRoutes = require("./routes/departmentRoutes");
+const adminUserRoutes = require("./routes/adminUserRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
 const nurseRoutes = require("./routes/nurseRoutes");

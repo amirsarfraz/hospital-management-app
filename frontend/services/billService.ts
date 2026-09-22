@@ -1,136 +1,69 @@
 import type {
-    Bill,
-    BillFormData,
-  } from "@/types/bill";
-  import API_BASE_URL from "@/lib/api";
-  
-  const API_URL = `${API_BASE_URL}/api/bills`;
-  
-  export async function getBills(): Promise<Bill[]> {
-    const response = await fetch(API_URL);
-  
-    const data = await response.json();
-  
-    if (!response.ok) {
-      throw new Error(
-        data.message || "Failed to fetch bills"
-      );
-    }
-  
-    return data;
-  }
-  
-  export async function getBill(
-    id: number
-  ): Promise<Bill> {
-    const response = await fetch(
-      `${API_URL}/${id}`
-    );
-  
-    const data = await response.json();
-  
-    if (!response.ok) {
-      throw new Error(
-        data.message || "Failed to fetch bill"
-      );
-    }
-  
-    return data;
-  }
-  
-  export async function createBill(
-    form: BillFormData
-  ) {
-    const response = await fetch(API_URL, {
+  Bill,
+  BillFormData,
+} from "@/types/bill";
+
+import { apiRequest } from "@/lib/api";
+
+
+export async function getBills(): Promise<Bill[]> {
+  return apiRequest<Bill[]>("/api/bills");
+}
+
+
+export async function getBill(
+  id: number
+): Promise<Bill> {
+  return apiRequest<Bill>(
+    `/api/bills/${id}`
+  );
+}
+
+
+export async function createBill(
+  form: BillFormData
+): Promise<Bill> {
+  return apiRequest<Bill>(
+    "/api/bills",
+    {
       method: "POST",
-  
-      headers: {
-        "Content-Type": "application/json",
-      },
-  
       body: JSON.stringify({
-        patient_id:
-          Number(form.patient_id),
-  
-        total_amount:
-          Number(form.total_amount),
-  
-        payment_status:
-          form.payment_status,
-  
-        date_issued:
-          form.date_issued,
+        patient_id: Number(form.patient_id),
+        total_amount: Number(form.total_amount),
+        payment_status: form.payment_status,
+        date_issued: form.date_issued,
       }),
-    });
-  
-    const data = await response.json();
-  
-    if (!response.ok) {
-      throw new Error(
-        data.message || "Failed to create bill"
-      );
     }
-  
-    return data;
-  }
-  
-  export async function updateBill(
-    id: number,
-    form: BillFormData
-  ) {
-    const response = await fetch(
-      `${API_URL}/${id}`,
-      {
-        method: "PUT",
-  
-        headers: {
-          "Content-Type": "application/json",
-        },
-  
-        body: JSON.stringify({
-          patient_id:
-            Number(form.patient_id),
-  
-          total_amount:
-            Number(form.total_amount),
-  
-          payment_status:
-            form.payment_status,
-  
-          date_issued:
-            form.date_issued,
-        }),
-      }
-    );
-  
-    const data = await response.json();
-  
-    if (!response.ok) {
-      throw new Error(
-        data.message || "Failed to update bill"
-      );
+  );
+}
+
+
+export async function updateBill(
+  id: number,
+  form: BillFormData
+): Promise<Bill> {
+  return apiRequest<Bill>(
+    `/api/bills/${id}`,
+    {
+      method: "PUT",
+      body: JSON.stringify({
+        patient_id: Number(form.patient_id),
+        total_amount: Number(form.total_amount),
+        payment_status: form.payment_status,
+        date_issued: form.date_issued,
+      }),
     }
-  
-    return data;
-  }
-  
-  export async function deleteBill(
-    id: number
-  ) {
-    const response = await fetch(
-      `${API_URL}/${id}`,
-      {
-        method: "DELETE",
-      }
-    );
-  
-    const data = await response.json();
-  
-    if (!response.ok) {
-      throw new Error(
-        data.message || "Failed to delete bill"
-      );
+  );
+}
+
+
+export async function deleteBill(
+  id: number
+) {
+  return apiRequest(
+    `/api/bills/${id}`,
+    {
+      method: "DELETE",
     }
-  
-    return data;
-  }
+  );
+}
