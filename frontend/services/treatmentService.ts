@@ -7,9 +7,7 @@ import { apiRequest } from "@/lib/api";
 
 const API_URL = "/api/treatments";
 
-export async function getTreatments(): Promise<
-  Treatment[]
-> {
+export async function getTreatments(): Promise<Treatment[]> {
   return apiRequest<Treatment[]>(API_URL);
 }
 
@@ -23,33 +21,32 @@ export async function getTreatment(
 
 export async function createTreatment(
   form: TreatmentFormData
-) {
-  return apiRequest(API_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      ...form,
-      patient_id:
-        Number(form.patient_id),
-      doctor_id:
-        Number(form.doctor_id),
-    }),
-  });
+): Promise<Treatment> {
+  return apiRequest<Treatment>(
+    API_URL,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        ...form,
+        patient_id: Number(form.patient_id),
+        doctor_id: Number(form.doctor_id),
+      }),
+    }
+  );
 }
 
 export async function updateTreatment(
   id: number,
   form: TreatmentFormData
-) {
-  return apiRequest(
+): Promise<Treatment> {
+  return apiRequest<Treatment>(
     `${API_URL}/${id}`,
     {
       method: "PUT",
       body: JSON.stringify({
         ...form,
-        patient_id:
-          Number(form.patient_id),
-        doctor_id:
-          Number(form.doctor_id),
+        patient_id: Number(form.patient_id),
+        doctor_id: Number(form.doctor_id),
       }),
     }
   );
@@ -57,7 +54,7 @@ export async function updateTreatment(
 
 export async function deleteTreatment(
   id: number
-) {
+): Promise<unknown> {
   return apiRequest(
     `${API_URL}/${id}`,
     {

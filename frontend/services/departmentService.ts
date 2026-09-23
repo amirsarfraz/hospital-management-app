@@ -1,17 +1,19 @@
+import type { Department } from "@/types/department";
+
 import { apiRequest } from "@/lib/api";
 
 const API_URL = "/api/departments";
 
-export async function getDepartments() {
-  return apiRequest(API_URL);
+export async function getDepartments(): Promise<Department[]> {
+  return apiRequest<Department[]>(API_URL);
 }
 
 export async function createDepartment(payload: {
   name: string;
   location: string;
   contact_phone: string;
-}) {
-  return apiRequest(API_URL, {
+}): Promise<Department> {
+  return apiRequest<Department>(API_URL, {
     method: "POST",
     body: JSON.stringify(payload),
   });
@@ -24,15 +26,23 @@ export async function updateDepartment(
     location: string;
     contact_phone: string;
   }
-) {
-  return apiRequest(`${API_URL}/${id}`, {
-    method: "PUT",
-    body: JSON.stringify(payload),
-  });
+): Promise<Department> {
+  return apiRequest<Department>(
+    `${API_URL}/${id}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }
+  );
 }
 
-export async function deleteDepartment(id: number) {
-  return apiRequest(`${API_URL}/${id}`, {
-    method: "DELETE",
-  });
+export async function deleteDepartment(
+  id: number
+): Promise<unknown> {
+  return apiRequest(
+    `${API_URL}/${id}`,
+    {
+      method: "DELETE",
+    }
+  );
 }

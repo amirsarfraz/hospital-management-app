@@ -1,22 +1,24 @@
-import type { NurseFormData } from "@/types/nurse";
+import type {
+  Nurse,
+  NurseFormData,
+} from "@/types/nurse";
 
 import { apiRequest } from "@/lib/api";
 
 const API_URL = "/api/nurses";
 
-export async function getNurses() {
-  return apiRequest(API_URL);
+export async function getNurses(): Promise<Nurse[]> {
+  return apiRequest<Nurse[]>(API_URL);
 }
 
 export async function createNurse(
   form: NurseFormData
-) {
-  return apiRequest(API_URL, {
+): Promise<Nurse> {
+  return apiRequest<Nurse>(API_URL, {
     method: "POST",
     body: JSON.stringify({
       ...form,
-      department_id:
-        Number(form.department_id),
+      department_id: Number(form.department_id),
     }),
   });
 }
@@ -24,15 +26,14 @@ export async function createNurse(
 export async function updateNurse(
   id: number,
   form: NurseFormData
-) {
-  return apiRequest(
+): Promise<Nurse> {
+  return apiRequest<Nurse>(
     `${API_URL}/${id}`,
     {
       method: "PUT",
       body: JSON.stringify({
         ...form,
-        department_id:
-          Number(form.department_id),
+        department_id: Number(form.department_id),
       }),
     }
   );
@@ -40,7 +41,7 @@ export async function updateNurse(
 
 export async function deleteNurse(
   id: number
-) {
+): Promise<unknown> {
   return apiRequest(
     `${API_URL}/${id}`,
     {
