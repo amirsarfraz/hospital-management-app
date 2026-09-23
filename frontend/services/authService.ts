@@ -1,5 +1,9 @@
 import { apiRequest } from "@/lib/api";
-import type { AuthUserResponse, User } from "@/types/user";
+
+import type {
+  AuthUserResponse,
+  User,
+} from "@/types/user";
 
 export interface LoginPayload {
   email: string;
@@ -29,39 +33,45 @@ export interface RegisterResponse {
 }
 
 export const authService = {
-  // =====================================================
-  // LOGIN
-  // =====================================================
+  async login(
+    payload: LoginPayload
+  ): Promise<LoginResponse> {
+    const data =
+      await apiRequest<LoginResponse>(
+        "/api/auth/login",
+        {
+          method: "POST",
+          body: JSON.stringify(payload),
+        }
+      );
 
-  async login(payload: LoginPayload): Promise<LoginResponse> {
-    const data = await apiRequest<LoginResponse>(
-      "/api/auth/login",
-      {
-        method: "POST",
-        body: JSON.stringify(payload),
-      }
-    );
-
-    if (data.session?.access_token) {
+    if (
+      data.session?.access_token
+    ) {
       localStorage.setItem(
         "access_token",
         data.session.access_token
       );
     }
 
-    if (data.session?.refresh_token) {
+    if (
+      data.session?.refresh_token
+    ) {
       localStorage.setItem(
         "refresh_token",
         data.session.refresh_token
       );
     }
 
+    if (data.user?.role) {
+      localStorage.setItem(
+        "role",
+        data.user.role
+      );
+    }
+
     return data;
   },
-
-  // =====================================================
-  // REGISTER
-  // =====================================================
 
   async register(
     payload: RegisterPayload
@@ -75,10 +85,6 @@ export const authService = {
     );
   },
 
-  // =====================================================
-  // GET CURRENT USER
-  // =====================================================
-
   async getMe(): Promise<User> {
     const data =
       await apiRequest<AuthUserResponse>(
@@ -88,26 +94,26 @@ export const authService = {
     return data.user;
   },
 
-  // =====================================================
-  // CHECK IF LOGGED IN
-  // =====================================================
-
   isAuthenticated(): boolean {
-    if (typeof window === "undefined") {
+    if (
+      typeof window ===
+      "undefined"
+    ) {
       return false;
     }
 
     return Boolean(
-      localStorage.getItem("access_token")
+      localStorage.getItem(
+        "access_token"
+      )
     );
   },
 
-  // =====================================================
-  // GET TOKEN
-  // =====================================================
-
   getToken(): string | null {
-    if (typeof window === "undefined") {
+    if (
+      typeof window ===
+      "undefined"
+    ) {
       return null;
     }
 
@@ -116,15 +122,14 @@ export const authService = {
     );
   },
 
-  // =====================================================
-  // LOGOUT
-  // =====================================================
-
   async logout(): Promise<void> {
     try {
-      await apiRequest("/api/auth/logout", {
-        method: "POST",
-      });
+      await apiRequest(
+        "/api/auth/logout",
+        {
+          method: "POST",
+        }
+      );
     } catch (error) {
       console.error(
         "Backend logout failed:",
@@ -137,6 +142,10 @@ export const authService = {
 
       localStorage.removeItem(
         "refresh_token"
+      );
+
+      localStorage.removeItem(
+        "role"
       );
     }
   },

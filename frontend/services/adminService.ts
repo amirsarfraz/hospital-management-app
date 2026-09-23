@@ -1,4 +1,6 @@
-import { apiRequest } from "@/lib/api";
+import {
+  apiRequest,
+} from "@/lib/api";
 
 import type {
   UpdateRoleResponse,
@@ -9,14 +11,10 @@ import type {
 
 interface GetUsersParams {
   search?: string;
-  role?: string;
+  role?: UserRole | "";
 }
 
 export const adminService = {
-  // =====================================================
-  // GET ALL USERS
-  // =====================================================
-
   async getUsers(
     params: GetUsersParams = {}
   ): Promise<User[]> {
@@ -40,9 +38,10 @@ export const adminService = {
     const query =
       searchParams.toString();
 
-    const endpoint = query
-      ? `/api/admin/users?${query}`
-      : "/api/admin/users";
+    const endpoint =
+      query
+        ? `/api/admin/users?${query}`
+        : "/api/admin/users";
 
     const data =
       await apiRequest<UsersResponse>(
@@ -51,26 +50,6 @@ export const adminService = {
 
     return data.users;
   },
-
-  // =====================================================
-  // GET USER
-  // =====================================================
-
-  async getUserById(
-    id: string
-  ): Promise<User> {
-    const data = await apiRequest<{
-      user: User;
-    }>(
-      `/api/admin/users/${id}`
-    );
-
-    return data.user;
-  },
-
-  // =====================================================
-  // UPDATE USER ROLE
-  // =====================================================
 
   async updateUserRole(
     id: string,
@@ -89,20 +68,5 @@ export const adminService = {
       );
 
     return data.user;
-  },
-
-  // =====================================================
-  // DELETE USER
-  // =====================================================
-
-  async deleteUser(
-    id: string
-  ): Promise<void> {
-    await apiRequest(
-      `/api/admin/users/${id}`,
-      {
-        method: "DELETE",
-      }
-    );
   },
 };
