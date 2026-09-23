@@ -1,28 +1,44 @@
-const express = require("express");
+const express =
+  require("express");
 
 const {
   requireAuth,
-} = require("../middleware/authMiddleware");
+} = require(
+  "../middleware/authMiddleware"
+);
 
-const router = express.Router();
+const router =
+  express.Router();
 
-// ======================================================
+// ==========================================
 // GET CURRENT LOGGED-IN USER
 // GET /api/auth/me
-// ======================================================
+// ==========================================
 
-router.get("/me", requireAuth, async (req, res) => {
-  try {
-    res.status(200).json({
-      user: req.user,
-    });
-  } catch (error) {
-    console.error("Get current user error:", error);
+router.get(
+  "/me",
+  requireAuth,
+  async (req, res) => {
+    try {
+      return res
+        .status(200)
+        .json({
+          user: req.user,
+        });
+    } catch (error) {
+      console.error(
+        "Get current user error:",
+        error
+      );
 
-    res.status(500).json({
-      message: "Internal server error",
-    });
+      return res
+        .status(500)
+        .json({
+          message:
+            "Internal server error",
+        });
+    }
   }
-});
+);
 
 module.exports = router;

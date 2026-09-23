@@ -1,89 +1,105 @@
 "use client";
 
 import {
-  ReactNode,
   useEffect,
   useState,
 } from "react";
 
-import {
-  useRouter,
-} from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import {
-  authService,
-} from "@/services/authService";
+  apiRequest,
+} from "@/lib/api";
 
-interface AdminGuardProps {
-  children: ReactNode;
-}
+import type {
+  AuthUserResponse,
+} from "@/types/user";
 
 export default function AdminGuard({
   children,
-}: AdminGuardProps) {
-  const router = useRouter();
+}: {
+  children: React.ReactNode;
+}) {
+  const router =
+    useRouter();
 
-  const [loading, setLoading] =
-    useState(true);
-
-  const [authorized, setAuthorized] =
-    useState(false);
+  const [
+    checking,
+    setChecking,
+  ] = useState(true);
 
   useEffect(() => {
-    const checkAdmin = async () => {
-      try {
-        if (
-          !authService.isAuthenticated()
-        ) {
+    const checkAdmin =
+      async () => {
+        try {
+          const token =
+            localStorage.getItem(
+              "access_token"
+            );
+
+          if (!token) {
+            router.replace(
+              "/login"
+            );
+
+            return;
+          }
+
+          const data =
+            await apiRequest<AuthUserResponse>(
+              "/api/auth/me"
+            );
+
+          localStorage.setItem(
+            "role",
+            data.user.role
+          );
+
+          if (
+            data.user.role !==
+            "admin"
+          ) {
+            router.replace(
+              "/dashboard"
+            );
+
+            return;
+          }
+
+          setChecking(false);
+        } catch (error) {
+          console.error(
+            "Admin access check failed:",
+            error
+          );
+
+          localStorage.removeItem(
+            "access_token"
+          );
+
+          localStorage.removeItem(
+            "refresh_token"
+          );
+
+          localStorage.removeItem(
+            "role"
+          );
+
           router.replace(
             "/login"
           );
-
-          return;
         }
-
-        const user =
-          await authService.getMe();
-
-        if (
-          user.role !== "admin"
-        ) {
-          router.replace(
-            "/dashboard"
-          );
-
-          return;
-        }
-
-        setAuthorized(true);
-      } catch (error) {
-        localStorage.removeItem(
-          "access_token"
-        );
-
-        router.replace(
-          "/login"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
+      };
 
     checkAdmin();
   }, [router]);
 
-  if (loading) {
+  if (checking) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-gray-500">
-          Checking permissions...
-        </div>
+      <div className="p-6 text-slate-500">
+        Checking admin access...
       </div>
     );
-  }
-
-  if (!authorized) {
-    return null;
   }
 
   return <>{children}</>;

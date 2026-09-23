@@ -1,134 +1,135 @@
-const supabase = require("../config/supabase");
+const {
+  supabase,
+} = require("../config/supabase");
 
-// ======================================================
-// AUTHENTICATION MIDDLEWARE
-// ======================================================
-
-const requireAuth = async (req, res, next) => {
+async function requireAuth(
+  req,
+  res,
+  next
+) {
   try {
-    // --------------------------------------------------
-    // 1. Get Authorization header
-    // --------------------------------------------------
-
-    const authHeader = req.headers.authorization;
+    const authHeader =
+      req.headers.authorization;
 
     if (!authHeader) {
       return res.status(401).json({
-        success: false,
-        message: "Authorization token is required",
+        message:
+          "Authorization token required",
       });
     }
 
-    // Expected:
-    // Authorization: Bearer eyJhbGciOi...
+    const [type, token] =
+      authHeader.split(" ");
 
-    const [type, token] = authHeader.split(" ");
-
-    if (type !== "Bearer" || !token) {
+    if (
+      type !== "Bearer" ||
+      !token
+    ) {
       return res.status(401).json({
-        success: false,
-        message: "Invalid authorization format. Use Bearer token.",
+        message:
+          "Invalid authorization format",
       });
     }
 
-    // --------------------------------------------------
-    // 2. Verify token with Supabase
-    // --------------------------------------------------
-
+    // Verify Supabase access token
     const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser(token);
+      data: authData,
+      error: authError,
+    } =
+      await supabase.auth.getUser(
+        token
+      );
 
-    if (userError || !user) {
+    if (
+      authError ||
+      !authData?.user
+    ) {
+      console.error(
+        "Supabase auth error:",
+        authError
+      );
+
       return res.status(401).json({
-        success: false,
-        message: "Invalid or expired token",
+        message:
+          "Authentication failed",
       });
     }
 
-    // --------------------------------------------------
-    // 3. Get profile and role
-    // --------------------------------------------------
+    const authUser =
+      authData.user;
 
-    const { data: profile, error: profileError } = await supabase
+    // Get application profile + role
+    const {
+      data: profile,
+      error: profileError,
+    } = await supabase
       .from("profiles")
-      .select("id, first_name, last_name, role")
-      .eq("id", user.id)
-      .maybeSingle();
+      .select(
+        `
+        id,
+        first_name,
+        last_name,
+        role,
+        created_at,
+        updated_at
+        `
+      )
+      .eq("id", authUser.id)
+      .single();
 
-    if (profileError) {
-      console.error("Profile error:", profileError);
+    if (
+      profileError ||
+      !profile
+    ) {
+      console.error(
+        "Profile lookup error:",
+        profileError
+      );
 
-      return res.status(500).json({
-        success: false,
-        message: "Unable to load user profile",
+      return res.status(404).json({
+        message:
+          "User profile not found",
       });
     }
 
-    if (!profile) {
-      return res.status(403).json({
-        success: false,
-        message: "User profile not found",
-      });
-    }
+    const fullName = [
+      profile.first_name,
+      profile.last_name,
+    ]
+      .filter(Boolean)
+      .join(" ");
 
-    // --------------------------------------------------
-    // 4. Attach authenticated user to request
-    // --------------------------------------------------
-
+    // This is YOUR application user
     req.user = {
-      id: user.id,
-      email: user.email,
-      first_name: profile.first_name,
-      last_name: profile.last_name,
+      id: profile.id,
+      name: fullName,
+      first_name:
+        profile.first_name,
+      last_name:
+        profile.last_name,
+      email:
+        authUser.email || "",
       role: profile.role,
+      created_at:
+        profile.created_at,
+      updated_at:
+        profile.updated_at,
     };
-
-    // --------------------------------------------------
-    // 5. Continue request
-    // --------------------------------------------------
 
     next();
   } catch (error) {
-    console.error("Authentication middleware error:", error);
+    console.error(
+      "Auth middleware error:",
+      error
+    );
 
     return res.status(500).json({
-      success: false,
-      message: "Authentication failed",
+      message:
+        "Authentication failed",
     });
   }
-};
-
-// ======================================================
-// ROLE AUTHORIZATION MIDDLEWARE
-// ======================================================
-
-const requireRole = (...allowedRoles) => {
-  return (req, res, next) => {
-    // User must first pass requireAuth
-
-    if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        message: "Authentication required",
-      });
-    }
-
-    // Check whether user's role is allowed
-
-    if (!allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({
-        success: false,
-        message: "You do not have permission to perform this action",
-      });
-    }
-
-    next();
-  };
-};
+}
 
 module.exports = {
   requireAuth,
-  requireRole,
 };
