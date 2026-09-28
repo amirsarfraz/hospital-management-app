@@ -25,11 +25,8 @@ import {
 import type {
   Bill,
   BillFormData,
+  BillingState,
 } from "@/types/bill";
-
-import type {
-  Patient,
-} from "@/types/patient";
 
 const emptyForm: BillFormData = {
   patient_id: "",
@@ -39,59 +36,57 @@ const emptyForm: BillFormData = {
 };
 
 export default function BillingPage() {
-  const [bills, setBills] =
-    useState<Bill[]>([]);
-
-  const [patients, setPatients] =
-    useState<Patient[]>([]);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [submitting, setSubmitting] =
-    useState(false);
-
-  const [form, setForm] =
-    useState<BillFormData>(
-      emptyForm
-    );
-
-  const [
-    editingBill,
-    setEditingBill,
-  ] = useState<Bill | null>(null);
-
-  const [
-    deleteBillId,
-    setDeleteBillId,
-  ] = useState<number | null>(
-    null
-  );
-
-  const [formOpen, setFormOpen] =
-    useState(false);
-
-  const [search, setSearch] =
-    useState("");
-
-  const [
-    statusFilter,
-    setStatusFilter,
-  ] = useState("all");
-
-  const [toast, setToast] =
-    useState({
-      show: false,
-      message: "",
-      type: "success",
+  const [state, setState] =
+    useState<BillingState>({
+      bills: [],
+      patients: [],
+      loading: true,
+      submitting: false,
+      form: emptyForm,
+      editingBill: null,
+      deleteBillId: null,
+      formOpen: false,
+      search: "",
+      statusFilter: "all",
+      toast: {
+        show: false,
+        message: "",
+        type: "success",
+      },
     });
+
+  const {
+    bills,
+    patients,
+    loading,
+    submitting,
+    form,
+    editingBill,
+    deleteBillId,
+    formOpen,
+    search,
+    statusFilter,
+    toast,
+  } = state;
+
+  const updateState = <
+    K extends keyof BillingState,
+  >(
+    field: K,
+    value: BillingState[K]
+  ) => {
+    setState((previous) => ({
+      ...previous,
+      [field]: value,
+    }));
+  };
 
   const showToast = (
     message: string,
     type: "success" | "error" =
       "success"
   ) => {
-    setToast({
+    updateState("toast", {
       show: true,
       message,
       type,
@@ -100,7 +95,10 @@ export default function BillingPage() {
 
   const fetchData = async () => {
     try {
-      setLoading(true);
+      updateState(
+        "loading",
+        true
+      );
 
       const [
         billData,
@@ -110,8 +108,11 @@ export default function BillingPage() {
         getPatients(),
       ]);
 
-      setBills(billData);
-      setPatients(patientData);
+      setState((previous) => ({
+        ...previous,
+        bills: billData,
+        patients: patientData,
+      }));
     } catch (error) {
       showToast(
         error instanceof Error
@@ -120,7 +121,10 @@ export default function BillingPage() {
         "error"
       );
     } finally {
-      setLoading(false);
+      updateState(
+        "loading",
+        false
+      );
     }
   };
 
@@ -134,57 +138,73 @@ export default function BillingPage() {
       | HTMLSelectElement
     >
   ) => {
-    setForm((previous) => ({
+    const {
+      name,
+      value,
+    } = e.target;
+
+    setState((previous) => ({
       ...previous,
-      [e.target.name]:
-        e.target.value,
+      form: {
+        ...previous.form,
+        [name]: value,
+      },
     }));
   };
 
   const openCreateModal = () => {
-    setEditingBill(null);
-
-    setForm({
-      ...emptyForm,
-      date_issued:
-        new Date()
-          .toISOString()
-          .slice(0, 10),
-    });
-
-    setFormOpen(true);
+    setState((previous) => ({
+      ...previous,
+      editingBill: null,
+      form: {
+        ...emptyForm,
+        date_issued:
+          new Date()
+            .toISOString()
+            .slice(0, 10),
+      },
+      formOpen: true,
+    }));
   };
 
   const openEditModal = (
     bill: Bill
   ) => {
-    setEditingBill(bill);
+    setState((previous) => ({
+      ...previous,
+      editingBill: bill,
+      form: {
+        patient_id:
+          String(
+            bill.patient_id
+          ),
 
-    setForm({
-      patient_id:
-        String(bill.patient_id),
+        total_amount:
+          String(
+            bill.total_amount
+          ),
 
-      total_amount:
-        String(bill.total_amount),
+        payment_status:
+          bill.payment_status,
 
-      payment_status:
-        bill.payment_status,
-
-      date_issued:
-        bill.date_issued,
-    });
-
-    setFormOpen(true);
+        date_issued:
+          bill.date_issued,
+      },
+      formOpen: true,
+    }));
   };
 
   const closeFormModal = () => {
-    setFormOpen(false);
-    setEditingBill(null);
-    setForm(emptyForm);
+    setState((previous) => ({
+      ...previous,
+      formOpen: false,
+      editingBill: null,
+      form: emptyForm,
+    }));
   };
 
   const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
+    e: React.SubmitEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
 
@@ -203,7 +223,9 @@ export default function BillingPage() {
     }
 
     if (
-      Number(form.total_amount) < 0
+      Number(
+        form.total_amount
+      ) < 0
     ) {
       showToast(
         "Total amount cannot be negative.",
@@ -214,7 +236,10 @@ export default function BillingPage() {
     }
 
     try {
-      setSubmitting(true);
+      updateState(
+        "submitting",
+        true
+      );
 
       if (editingBill) {
         await updateBill(
@@ -226,7 +251,9 @@ export default function BillingPage() {
           "Bill updated successfully."
         );
       } else {
-        await createBill(form);
+        await createBill(
+          form
+        );
 
         showToast(
           "Bill created successfully."
@@ -244,7 +271,10 @@ export default function BillingPage() {
         "error"
       );
     } finally {
-      setSubmitting(false);
+      updateState(
+        "submitting",
+        false
+      );
     }
   };
 
@@ -257,13 +287,19 @@ export default function BillingPage() {
       }
 
       try {
-        setSubmitting(true);
+        updateState(
+          "submitting",
+          true
+        );
 
         await deleteBill(
           deleteBillId
         );
 
-        setDeleteBillId(null);
+        updateState(
+          "deleteBillId",
+          null
+        );
 
         showToast(
           "Bill deleted successfully."
@@ -278,7 +314,10 @@ export default function BillingPage() {
           "error"
         );
       } finally {
-        setSubmitting(false);
+        updateState(
+          "submitting",
+          false
+        );
       }
     };
 
@@ -286,17 +325,17 @@ export default function BillingPage() {
     bills.filter((bill) => {
       const searchText = `
         ${bill.bill_number}
-        ${
-          bill.patients?.first_name ||
-          ""
+        ${bill.patients
+          ?.first_name ||
+        ""
         }
-        ${
-          bill.patients?.last_name ||
-          ""
+        ${bill.patients
+          ?.last_name ||
+        ""
         }
-        ${
-          bill.patients?.phone_number ||
-          ""
+        ${bill.patients
+          ?.phone_number ||
+        ""
         }
       `.toLowerCase();
 
@@ -306,9 +345,10 @@ export default function BillingPage() {
         );
 
       const matchesStatus =
-        statusFilter === "all" ||
+        statusFilter ===
+        "all" ||
         bill.payment_status ===
-          statusFilter;
+        statusFilter;
 
       return (
         matchesSearch &&
@@ -352,11 +392,9 @@ export default function BillingPage() {
 
   return (
     <div className="space-y-6">
-
       {/* Header */}
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
         <div>
           <h1 className="text-3xl font-bold text-slate-900">
             Billing
@@ -375,13 +413,11 @@ export default function BillingPage() {
         >
           + Create Bill
         </Button>
-
       </div>
 
       {/* Stats */}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-sm text-slate-500">
             Total Revenue
@@ -423,18 +459,17 @@ export default function BillingPage() {
             {unpaidBills.length}
           </p>
         </div>
-
       </div>
 
       {/* Search/filter */}
 
       <div className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[1fr_220px]">
-
         <input
           type="text"
           value={search}
           onChange={(e) =>
-            setSearch(
+            updateState(
+              "search",
               e.target.value
             )
           }
@@ -443,9 +478,12 @@ export default function BillingPage() {
         />
 
         <select
-          value={statusFilter}
+          value={
+            statusFilter
+          }
           onChange={(e) =>
-            setStatusFilter(
+            updateState(
+              "statusFilter",
               e.target.value
             )
           }
@@ -463,13 +501,11 @@ export default function BillingPage() {
             Unpaid
           </option>
         </select>
-
       </div>
 
       {/* Table */}
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-
         <div className="border-b border-slate-200 px-6 py-5">
           <h2 className="text-lg font-semibold text-slate-900">
             Billing Records
@@ -494,12 +530,9 @@ export default function BillingPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-
             <table className="w-full text-left text-sm">
-
               <thead className="bg-slate-50">
                 <tr className="text-xs uppercase tracking-wide text-slate-500">
-
                   <th className="px-6 py-4">
                     Bill
                   </th>
@@ -523,7 +556,6 @@ export default function BillingPage() {
                   <th className="px-6 py-4 text-right">
                     Actions
                   </th>
-
                 </tr>
               </thead>
 
@@ -536,7 +568,6 @@ export default function BillingPage() {
                       }
                       className="border-t border-slate-100 hover:bg-slate-50/70"
                     >
-
                       <td className="px-6 py-4 font-semibold text-slate-900">
                         #
                         {
@@ -545,14 +576,15 @@ export default function BillingPage() {
                       </td>
 
                       <td className="px-6 py-4">
-
                         <p className="font-medium text-slate-900">
                           {
-                            bill.patients
+                            bill
+                              .patients
                               ?.first_name
                           }{" "}
                           {
-                            bill.patients
+                            bill
+                              .patients
                               ?.last_name
                           }
                         </p>
@@ -563,7 +595,6 @@ export default function BillingPage() {
                             bill.patient_id
                           }
                         </p>
-
                       </td>
 
                       <td className="px-6 py-4 font-medium text-slate-700">
@@ -580,26 +611,21 @@ export default function BillingPage() {
                       </td>
 
                       <td className="px-6 py-4">
-
                         <span
-                          className={`rounded-full px-3 py-1 text-xs font-medium ${
-                            bill.payment_status ===
-                            "paid"
+                          className={`rounded-full px-3 py-1 text-xs font-medium ${bill.payment_status ===
+                              "paid"
                               ? "bg-emerald-50 text-emerald-700"
                               : "bg-amber-50 text-amber-700"
-                          }`}
+                            }`}
                         >
                           {
                             bill.payment_status
                           }
                         </span>
-
                       </td>
 
                       <td className="px-6 py-4">
-
                         <div className="flex justify-end gap-2">
-
                           <Button
                             variant="secondary"
                             onClick={() =>
@@ -614,28 +640,23 @@ export default function BillingPage() {
                           <Button
                             variant="danger"
                             onClick={() =>
-                              setDeleteBillId(
+                              updateState(
+                                "deleteBillId",
                                 bill.bill_number
                               )
                             }
                           >
                             Delete
                           </Button>
-
                         </div>
-
                       </td>
-
                     </tr>
                   )
                 )}
               </tbody>
-
             </table>
-
           </div>
         )}
-
       </div>
 
       {/* Add/Edit modal */}
@@ -651,18 +672,14 @@ export default function BillingPage() {
           closeFormModal
         }
       >
-
         <form
           onSubmit={
             handleSubmit
           }
           className="space-y-5"
         >
-
           <div className="grid gap-4 sm:grid-cols-2">
-
             <div>
-
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Patient *
               </label>
@@ -702,7 +719,6 @@ export default function BillingPage() {
                   )
                 )}
               </select>
-
             </div>
 
             <Input
@@ -736,7 +752,6 @@ export default function BillingPage() {
             />
 
             <div>
-
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Payment Status *
               </label>
@@ -760,13 +775,10 @@ export default function BillingPage() {
                   Paid
                 </option>
               </select>
-
             </div>
-
           </div>
 
           <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
-
             <Button
               type="button"
               variant="secondary"
@@ -789,16 +801,14 @@ export default function BillingPage() {
                   ? "Update Bill"
                   : "Create Bill"}
             </Button>
-
           </div>
-
         </form>
-
       </Modal>
 
       <ConfirmModal
         open={
-          deleteBillId !== null
+          deleteBillId !==
+          null
         }
         title="Delete Bill"
         message="Are you sure you want to delete this bill? This action cannot be undone."
@@ -810,7 +820,8 @@ export default function BillingPage() {
           handleDelete
         }
         onCancel={() =>
-          setDeleteBillId(
+          updateState(
+            "deleteBillId",
             null
           )
         }
@@ -825,16 +836,18 @@ export default function BillingPage() {
             toast.type
           }
           onClose={() =>
-            setToast(
+            setState(
               (previous) => ({
                 ...previous,
-                show: false,
+                toast: {
+                  ...previous.toast,
+                  show: false,
+                },
               })
             )
           }
         />
       )}
-
     </div>
   );
 }

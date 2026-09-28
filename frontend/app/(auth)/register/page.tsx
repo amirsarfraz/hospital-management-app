@@ -1,60 +1,71 @@
 "use client";
 
-import {
-  FormEvent,
-  useState,
-} from "react";
+import { useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import {
-  registerUser,
-} from "@/lib/auth";
+import { registerUser } from "@/lib/auth";
+
+import type {
+  RegisterState,
+} from "@/types/user";
 
 export default function RegisterPage() {
   const router = useRouter();
 
-  const [fullName, setFullName] =
-    useState("");
+  const [state, setState] =
+    useState<RegisterState>({
+      fullName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      error: "",
+      success: "",
+      loading: false,
+    });
 
-  const [email, setEmail] =
-    useState("");
-
-  const [password, setPassword] =
-    useState("");
-
-  const [
+  const {
+    fullName,
+    email,
+    password,
     confirmPassword,
-    setConfirmPassword,
-  ] = useState("");
+    error,
+    success,
+    loading,
+  } = state;
 
-  const [error, setError] =
-    useState("");
-
-  const [success, setSuccess] =
-    useState("");
-
-  const [loading, setLoading] =
-    useState(false);
+  const updateState = <
+    K extends keyof RegisterState
+  >(
+    field: K,
+    value: RegisterState[K]
+  ) => {
+    setState((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
   async function handleSubmit(
-    event: FormEvent
+    event: React.SubmitEvent<HTMLFormElement>
   ) {
     event.preventDefault();
 
-    setError("");
-    setSuccess("");
+    updateState("error", "");
+    updateState("success", "");
 
     if (!fullName.trim()) {
-      setError(
+      updateState(
+        "error",
         "Full name is required."
       );
       return;
     }
 
     if (!email.trim()) {
-      setError(
+      updateState(
+        "error",
         "Email is required."
       );
       return;
@@ -65,69 +76,67 @@ export default function RegisterPage() {
         email
       )
     ) {
-      setError(
+      updateState(
+        "error",
         "Please enter a valid email address."
       );
       return;
     }
 
     if (password.length < 8) {
-      setError(
+      updateState(
+        "error",
         "Password must be at least 8 characters."
       );
       return;
     }
 
-    if (
-      password !== confirmPassword
-    ) {
-      setError(
+    if (password !== confirmPassword) {
+      updateState(
+        "error",
         "Passwords do not match."
       );
       return;
     }
 
     try {
-      setLoading(true);
+      updateState("loading", true);
 
-      const data =
-        await registerUser(
-          fullName,
-          email,
-          password
-        );
+      const data = await registerUser(
+        fullName,
+        email,
+        password
+      );
 
-      /*
+      /**
        * If email confirmation is enabled,
        * session may be null.
        */
       if (!data.session) {
-        setSuccess(
+        updateState(
+          "success",
           "Registration successful. Please check your email to confirm your account."
         );
 
         return;
       }
 
-      router.replace(
-        "/dashboard"
-      );
+      router.replace("/dashboard");
     } catch (err) {
-      setError(
+      updateState(
+        "error",
         err instanceof Error
           ? err.message
           : "Registration failed."
       );
     } finally {
-      setLoading(false);
+      updateState("loading", false);
     }
   }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-900">
             Create account
@@ -154,7 +163,6 @@ export default function RegisterPage() {
           onSubmit={handleSubmit}
           className="space-y-5"
         >
-
           <div>
             <label className="mb-2 block text-sm font-medium">
               Full Name
@@ -164,7 +172,8 @@ export default function RegisterPage() {
               type="text"
               value={fullName}
               onChange={(e) =>
-                setFullName(
+                updateState(
+                  "fullName",
                   e.target.value
                 )
               }
@@ -182,7 +191,8 @@ export default function RegisterPage() {
               type="email"
               value={email}
               onChange={(e) =>
-                setEmail(
+                updateState(
+                  "email",
                   e.target.value
                 )
               }
@@ -200,7 +210,8 @@ export default function RegisterPage() {
               type="password"
               value={password}
               onChange={(e) =>
-                setPassword(
+                updateState(
+                  "password",
                   e.target.value
                 )
               }
@@ -216,11 +227,10 @@ export default function RegisterPage() {
 
             <input
               type="password"
-              value={
-                confirmPassword
-              }
+              value={confirmPassword}
               onChange={(e) =>
-                setConfirmPassword(
+                updateState(
+                  "confirmPassword",
                   e.target.value
                 )
               }
@@ -238,7 +248,6 @@ export default function RegisterPage() {
               ? "Creating account..."
               : "Create Account"}
           </button>
-
         </form>
 
         <div className="mt-6 text-center text-sm text-slate-600">
@@ -251,9 +260,7 @@ export default function RegisterPage() {
             Login
           </Link>
         </div>
-
       </div>
-
     </main>
   );
 }

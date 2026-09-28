@@ -11,7 +11,7 @@ import {
 } from "@/services/adminService";
 
 import type {
-  User,
+  AdminUsersState,
   UserRole,
 } from "@/types/user";
 
@@ -23,128 +23,119 @@ const roles: UserRole[] = [
 ];
 
 export default function AdminUsersPage() {
-  const [
+  const [state, setState] =
+    useState<AdminUsersState>({
+      users: [],
+      loading: true,
+      error: "",
+      search: "",
+      roleFilter: "",
+      updatingId: null,
+    });
+
+  const {
     users,
-    setUsers,
-  ] = useState<User[]>([]);
-
-  const [
     loading,
-    setLoading,
-  ] = useState(true);
-
-  const [
     error,
-    setError,
-  ] = useState("");
-
-  const [
     search,
-    setSearch,
-  ] = useState("");
-
-  const [
     roleFilter,
-    setRoleFilter,
-  ] = useState<
-    UserRole | ""
-  >("");
-
-  const [
     updatingId,
-    setUpdatingId,
-  ] = useState<
-    string | null
-  >(null);
+  } = state;
 
-  const fetchUsers =
-    useCallback(
-      async () => {
-        try {
-          setLoading(true);
-          setError("");
+  const updateState = <
+    K extends keyof AdminUsersState
+  >(
+    field: K,
+    value: AdminUsersState[K]
+  ) => {
+    setState((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
-          const data =
-            await adminService.getUsers(
-              {
-                search,
-                role:
-                  roleFilter,
-              }
-            );
-
-          setUsers(data);
-        } catch (err) {
-          setError(
-            err instanceof Error
-              ? err.message
-              : "Failed to load users"
-          );
-        } finally {
-          setLoading(false);
-        }
-      },
-      [
-        search,
-        roleFilter,
-      ]
-    );
-
-  useEffect(() => {
-    const timeout =
-      setTimeout(
-        () => {
-          fetchUsers();
-        },
-        300
-      );
-
-    return () =>
-      clearTimeout(
-        timeout
-      );
-  }, [fetchUsers]);
-
-  const handleRoleChange =
-    async (
-      userId: string,
-      role: UserRole
-    ) => {
+  const fetchUsers = useCallback(
+    async () => {
       try {
-        setUpdatingId(
-          userId
-        );
+        updateState("loading", true);
+        updateState("error", "");
 
-        setError("");
+        const data =
+          await adminService.getUsers({
+            search,
+            role: roleFilter,
+          });
 
-        const updatedUser =
-          await adminService.updateUserRole(
-            userId,
-            role
-          );
-
-        setUsers(
-          (
-            currentUsers
-          ) =>
-            currentUsers.map(
-              (user) =>
-                user.id ===
-                userId
-                  ? updatedUser
-                  : user
-            )
-        );
+        updateState("users", data);
       } catch (err) {
-        setError(
+        updateState(
+          "error",
           err instanceof Error
             ? err.message
-            : "Failed to update user role"
+            : "Failed to load users"
         );
       } finally {
-        setUpdatingId(null);
+        updateState("loading", false);
       }
-    };
+    },
+    [
+      search,
+      roleFilter,
+    ]
+  );
+
+  useEffect(() => {
+    const timeout = setTimeout(
+      () => {
+        fetchUsers();
+      },
+      300
+    );
+
+    return () =>
+      clearTimeout(timeout);
+  }, [fetchUsers]);
+
+  const handleRoleChange = async (
+    userId: string,
+    role: UserRole
+  ) => {
+    try {
+      updateState(
+        "updatingId",
+        userId
+      );
+
+      updateState("error", "");
+
+      const updatedUser =
+        await adminService.updateUserRole(
+          userId,
+          role
+        );
+
+      updateState(
+        "users",
+        users.map((user) =>
+          user.id === userId
+            ? updatedUser
+            : user
+        )
+      );
+    } catch (err) {
+      updateState(
+        "error",
+        err instanceof Error
+          ? err.message
+          : "Failed to update user role"
+      );
+    } finally {
+      updateState(
+        "updatingId",
+        null
+      );
+    }
+  };
 
   return (
     <div>
@@ -169,7 +160,8 @@ export default function AdminUsersPage() {
           type="text"
           value={search}
           onChange={(e) =>
-            setSearch(
+            updateState(
+              "search",
               e.target.value
             )
           }
@@ -180,11 +172,11 @@ export default function AdminUsersPage() {
         <select
           value={roleFilter}
           onChange={(e) =>
-            setRoleFilter(
-              e.target
-                .value as
-                | UserRole
-                | ""
+            updateState(
+              "roleFilter",
+              e.target.value as
+              | UserRole
+              | ""
             )
           }
           className="rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none focus:border-blue-500"
@@ -193,16 +185,14 @@ export default function AdminUsersPage() {
             All roles
           </option>
 
-          {roles.map(
-            (role) => (
-              <option
-                key={role}
-                value={role}
-              >
-                {role}
-              </option>
-            )
-          )}
+          {roles.map((role) => (
+            <option
+              key={role}
+              value={role}
+            >
+              {role}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -231,76 +221,57 @@ export default function AdminUsersPage() {
 
             <tbody>
               {!loading &&
-                users.map(
-                  (user) => (
-                    <tr
-                      key={
-                        user.id
-                      }
-                      className="border-t border-slate-200"
-                    >
-                      <td className="px-5 py-4">
-                        {user.name ||
-                          "—"}
-                      </td>
+                users.map((user) => (
+                  <tr
+                    key={user.id}
+                    className="border-t border-slate-200"
+                  >
+                    <td className="px-5 py-4">
+                      {user.name || "—"}
+                    </td>
 
-                      <td className="px-5 py-4">
-                        {user.email ||
-                          "—"}
-                      </td>
+                    <td className="px-5 py-4">
+                      {user.email || "—"}
+                    </td>
 
-                      <td className="px-5 py-4">
-                        <select
-                          value={
-                            user.role
-                          }
-                          disabled={
-                            updatingId ===
-                            user.id
-                          }
-                          onChange={(
-                            e
-                          ) =>
-                            handleRoleChange(
-                              user.id,
-                              e
-                                .target
-                                .value as UserRole
-                            )
-                          }
-                          className="rounded-md border border-slate-300 bg-white px-3 py-2 capitalize outline-none focus:border-blue-500 disabled:opacity-60"
-                        >
-                          {roles.map(
-                            (
-                              role
-                            ) => (
-                              <option
-                                key={
-                                  role
-                                }
-                                value={
-                                  role
-                                }
-                              >
-                                {
-                                  role
-                                }
-                              </option>
-                            )
-                          )}
-                        </select>
-                      </td>
+                    <td className="px-5 py-4">
+                      <select
+                        value={user.role}
+                        disabled={
+                          updatingId ===
+                          user.id
+                        }
+                        onChange={(e) =>
+                          handleRoleChange(
+                            user.id,
+                            e.target
+                              .value as UserRole
+                          )
+                        }
+                        className="rounded-md border border-slate-300 bg-white px-3 py-2 capitalize outline-none focus:border-blue-500 disabled:opacity-60"
+                      >
+                        {roles.map(
+                          (role) => (
+                            <option
+                              key={role}
+                              value={role}
+                            >
+                              {role}
+                            </option>
+                          )
+                        )}
+                      </select>
+                    </td>
 
-                      <td className="px-5 py-4 text-sm text-slate-500">
-                        {user.created_at
-                          ? new Date(
-                              user.created_at
-                            ).toLocaleDateString()
-                          : "—"}
-                      </td>
-                    </tr>
-                  )
-                )}
+                    <td className="px-5 py-4 text-sm text-slate-500">
+                      {user.created_at
+                        ? new Date(
+                          user.created_at
+                        ).toLocaleDateString()
+                        : "—"}
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
@@ -312,8 +283,7 @@ export default function AdminUsersPage() {
         )}
 
         {!loading &&
-          users.length ===
-            0 &&
+          users.length === 0 &&
           !error && (
             <div className="p-8 text-center text-slate-500">
               No users found.

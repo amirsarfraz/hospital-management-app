@@ -11,6 +11,10 @@ export default function LogoutPage() {
     const logout = async () => {
       await supabase.auth.signOut();
 
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("role");
+
       router.replace("/login");
       router.refresh();
     };
@@ -20,9 +24,7 @@ export default function LogoutPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <p className="text-gray-500">
-        Logging out...
-      </p>
+      <p className="text-gray-500">Logging out...</p>
     </div>
   );
 }
