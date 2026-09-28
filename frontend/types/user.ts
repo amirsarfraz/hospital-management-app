@@ -1,3 +1,7 @@
+import type {
+  User as SupabaseUser,
+} from "@supabase/supabase-js";
+
 export type UserRole =
   | "admin"
   | "manager"
@@ -29,3 +33,32 @@ export interface UpdateRoleResponse {
   message: string;
   user: User;
 }
+
+export type Profile = {
+  id: string;
+  role?: string;
+  full_name?: string;
+};
+
+export type CurrentUserState = {
+  user: SupabaseUser | null;
+  profile: Profile | null;
+  loading: boolean;
+};
+export type RegisterState = {
+  fullName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  error: string;
+  success: string;
+  loading: boolean;
+};
+export type AdminUsersState = {
+  users: User[];
+  loading: boolean;
+  error: string;
+  search: string;
+  roleFilter: UserRole | "";
+  updatingId: string | null;
+};

@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  FormEvent,
   useEffect,
   useState,
 } from "react";
@@ -18,22 +17,32 @@ import type {
 export default function LoginPage() {
   const router = useRouter();
 
-  const [email, setEmail] =
-    useState("");
+  const [state, setState] = useState({
+    email: "",
+    password: "",
+    error: "",
+    loading: false,
+  });
 
-  const [password, setPassword] =
-    useState("");
+  const [checkingSession, setCheckingSession] =
+    useState(true);
 
-  const [error, setError] =
-    useState("");
+  const {
+    email,
+    password,
+    error,
+    loading,
+  } = state;
 
-  const [loading, setLoading] =
-    useState(false);
-
-  const [
-    checkingSession,
-    setCheckingSession,
-  ] = useState(true);
+  const updateState = (
+    field: keyof typeof state,
+    value: string | boolean
+  ) => {
+    setState((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
   const redirectByRole = (
     role: string
@@ -47,120 +56,104 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    const checkSession =
-      async () => {
-        try {
-          const {
-            data: { session },
-          } =
-            await supabase.auth.getSession();
+    const checkSession = async () => {
+      try {
+        const {
+          data: { session },
+        } =
+          await supabase.auth.getSession();
 
-          if (!session) {
-            setCheckingSession(false);
-            return;
-          }
-
-          localStorage.setItem(
-            "access_token",
-            session.access_token
-          );
-
-          if (
-            session.refresh_token
-          ) {
-            localStorage.setItem(
-              "refresh_token",
-              session.refresh_token
-            );
-          }
-
-          const me =
-            await apiRequest<AuthUserResponse>(
-              "/api/auth/me"
-            );
-
-          localStorage.setItem(
-            "role",
-            me.user.role
-          );
-
-          redirectByRole(
-            me.user.role
-          );
-        } catch (error) {
-          console.error(
-            "Session check failed:",
-            error
-          );
-
-          localStorage.removeItem(
-            "access_token"
-          );
-
-          localStorage.removeItem(
-            "refresh_token"
-          );
-
-          localStorage.removeItem(
-            "role"
-          );
-
-          await supabase.auth.signOut();
-
+        if (!session) {
           setCheckingSession(false);
+          return;
         }
-      };
+
+        localStorage.setItem(
+          "access_token",
+          session.access_token
+        );
+
+        if (session.refresh_token) {
+          localStorage.setItem(
+            "refresh_token",
+            session.refresh_token
+          );
+        }
+
+        const me =
+          await apiRequest<AuthUserResponse>(
+            "/api/auth/me"
+          );
+
+        localStorage.setItem(
+          "role",
+          me.user.role
+        );
+
+        redirectByRole(
+          me.user.role
+        );
+      } catch (error) {
+        console.error(
+          "Session check failed:",
+          error
+        );
+
+        localStorage.removeItem(
+          "access_token"
+        );
+
+        localStorage.removeItem(
+          "refresh_token"
+        );
+
+        localStorage.removeItem(
+          "role"
+        );
+
+        await supabase.auth.signOut();
+
+        setCheckingSession(false);
+      }
+    };
 
     checkSession();
   }, [router]);
 
   const handleLogin = async (
-    e: FormEvent<HTMLFormElement>
+    e: React.SubmitEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
 
-    setError("");
+    updateState("error", "");
 
-    if (
-      !email.trim() ||
-      !password
-    ) {
-      setError(
+    if (!email.trim() || !password) {
+      updateState(
+        "error",
         "Email and password are required."
       );
-
       return;
     }
 
     try {
-      setLoading(true);
+      updateState("loading", true);
 
-      const {
-        data,
-        error,
-      } =
-        await supabase.auth.signInWithPassword(
-          {
-            email:
-              email.trim(),
-
-            password,
-          }
-        );
+      const { data, error } =
+        await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
 
       if (error) {
-        setError(
-          error.message
-        );
-
+        updateState("error", error.message);
         return;
       }
 
       if (!data.session) {
-        setError(
+        updateState(
+          "error",
           "Unable to create login session."
         );
-
         return;
       }
 
@@ -169,9 +162,7 @@ export default function LoginPage() {
         data.session.access_token
       );
 
-      if (
-        data.session.refresh_token
-      ) {
+      if (data.session.refresh_token) {
         localStorage.setItem(
           "refresh_token",
           data.session.refresh_token
@@ -184,18 +175,18 @@ export default function LoginPage() {
         );
 
       if (!me.user) {
-        setError(
+        updateState(
+          "error",
           "Unable to load user profile."
         );
-
         return;
       }
 
       if (!me.user.role) {
-        setError(
+        updateState(
+          "error",
           "User role could not be determined."
         );
-
         return;
       }
 
@@ -204,24 +195,20 @@ export default function LoginPage() {
         me.user.role
       );
 
-      redirectByRole(
-        me.user.role
-      );
+      redirectByRole(me.user.role);
 
       router.refresh();
     } catch (err) {
-      console.error(
-        "Login error:",
-        err
-      );
+      console.error("Login error:", err);
 
-      setError(
+      updateState(
+        "error",
         err instanceof Error
           ? err.message
           : "Something went wrong. Please try again."
       );
     } finally {
-      setLoading(false);
+      updateState("loading", false);
     }
   };
 
@@ -271,7 +258,8 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) =>
-                setEmail(
+                updateState(
+                  "email",
                   e.target.value
                 )
               }
@@ -295,7 +283,8 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) =>
-                setPassword(
+                updateState(
+                  "password",
                   e.target.value
                 )
               }

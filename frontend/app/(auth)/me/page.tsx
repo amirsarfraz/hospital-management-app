@@ -4,18 +4,38 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
-type Profile = {
-  id: string;
-  role?: string;
-  full_name?: string;
-};
+
+import type {
+  CurrentUserState,
+} from "@/types/user";
 
 export default function CurrentUserPage() {
   const router = useRouter();
 
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [state, setState] =
+    useState<CurrentUserState>({
+      user: null,
+      profile: null,
+      loading: true,
+    });
+
+  const {
+    user,
+    profile,
+    loading,
+  } = state;
+
+  const updateState = <
+    K extends keyof CurrentUserState
+  >(
+    field: K,
+    value: CurrentUserState[K]
+  ) => {
+    setState((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
   useEffect(() => {
     const loadUser = async () => {
@@ -30,21 +50,23 @@ export default function CurrentUserPage() {
           return;
         }
 
-        setUser(user);
+        updateState("user", user);
 
         // Anonymous guest
         if (user.is_anonymous) {
-          setLoading(false);
+          updateState("loading", false);
           return;
         }
 
         // Get profile information including role
-        const { data: profileData, error: profileError } =
-          await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", user.id)
-            .single();
+        const {
+          data: profileData,
+          error: profileError,
+        } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
 
         if (profileError) {
           console.error(
@@ -52,10 +74,16 @@ export default function CurrentUserPage() {
             profileError.message
           );
         } else {
-          setProfile(profileData);
+          updateState(
+            "profile",
+            profileData
+          );
         }
       } finally {
-        setLoading(false);
+        updateState(
+          "loading",
+          false
+        );
       }
     };
 
@@ -83,7 +111,9 @@ export default function CurrentUserPage() {
 
         <div className="space-y-4">
           <div>
-            <span className="font-medium">User ID:</span>
+            <span className="font-medium">
+              User ID:
+            </span>
 
             <p className="text-gray-600">
               {user.id}
@@ -91,7 +121,9 @@ export default function CurrentUserPage() {
           </div>
 
           <div>
-            <span className="font-medium">Email:</span>
+            <span className="font-medium">
+              Email:
+            </span>
 
             <p className="text-gray-600">
               {user.email || "Guest user"}
