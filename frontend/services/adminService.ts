@@ -3,8 +3,14 @@ import {
 } from "@/lib/api";
 
 import type {
+  CreateUserPayload,
+  CreateUserResponse,
+  DeleteUserResponse,
   UpdateRoleResponse,
+  UpdateUserPayload,
+  UpdateUserResponse,
   User,
+  UserResponse,
   UserRole,
   UsersResponse,
 } from "@/types/user";
@@ -15,6 +21,9 @@ interface GetUsersParams {
 }
 
 export const adminService = {
+  // ==========================================
+  // GET ALL USERS
+  // ==========================================
   async getUsers(
     params: GetUsersParams = {}
   ): Promise<User[]> {
@@ -38,10 +47,9 @@ export const adminService = {
     const query =
       searchParams.toString();
 
-    const endpoint =
-      query
-        ? `/api/admin/users?${query}`
-        : "/api/admin/users";
+    const endpoint = query
+      ? `/api/admin/users?${query}`
+      : "/api/admin/users";
 
     const data =
       await apiRequest<UsersResponse>(
@@ -51,6 +59,66 @@ export const adminService = {
     return data.users;
   },
 
+  // ==========================================
+  // GET SINGLE USER
+  // ==========================================
+  async getUser(
+    id: string
+  ): Promise<User> {
+    const data =
+      await apiRequest<UserResponse>(
+        `/api/admin/users/${id}`
+      );
+
+    return data.user;
+  },
+
+  // ==========================================
+  // CREATE USER
+  // ==========================================
+  async createUser(
+    payload: CreateUserPayload
+  ): Promise<User> {
+    const data =
+      await apiRequest<CreateUserResponse>(
+        "/api/admin/users",
+        {
+          method: "POST",
+
+          body: JSON.stringify(
+            payload
+          ),
+        }
+      );
+
+    return data.user;
+  },
+
+  // ==========================================
+  // UPDATE USER
+  // ==========================================
+  async updateUser(
+    id: string,
+    payload: UpdateUserPayload
+  ): Promise<User> {
+    const data =
+      await apiRequest<UpdateUserResponse>(
+        `/api/admin/users/${id}`,
+        {
+          method: "PATCH",
+
+          body: JSON.stringify(
+            payload
+          ),
+        }
+      );
+
+    return data.user;
+  },
+
+  // ==========================================
+  // UPDATE ROLE
+  // ==========================================
   async updateUserRole(
     id: string,
     role: UserRole
@@ -68,5 +136,19 @@ export const adminService = {
       );
 
     return data.user;
+  },
+
+  // ==========================================
+  // DELETE USER
+  // ==========================================
+  async deleteUser(
+    id: string
+  ): Promise<DeleteUserResponse> {
+    return apiRequest<DeleteUserResponse>(
+      `/api/admin/users/${id}`,
+      {
+        method: "DELETE",
+      }
+    );
   },
 };
