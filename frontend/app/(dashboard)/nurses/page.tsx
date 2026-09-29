@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -15,12 +18,14 @@ import {
   deleteNurse,
 } from "@/services/nurseService";
 
-import { getDepartments } from "@/services/departmentService";
+import {
+  getDepartments,
+} from "@/services/departmentService";
 
 import type {
   Nurse,
   NurseFormData,
-  Department,
+  NursesState,
 } from "@/types/nurse";
 
 const emptyForm: NurseFormData = {
@@ -32,35 +37,52 @@ const emptyForm: NurseFormData = {
 };
 
 export default function NursesPage() {
-  const [nurses, setNurses] = useState<Nurse[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
+  const [state, setState] =
+    useState<NursesState>({
+      nurses: [],
+      departments: [],
+      loading: true,
+      submitting: false,
+      form: emptyForm,
+      editingNurse: null,
+      deleteNurseId: null,
+      formOpen: false,
+      toast: {
+        show: false,
+        message: "",
+        type: "success",
+      },
+    });
 
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const {
+    nurses,
+    departments,
+    loading,
+    submitting,
+    form,
+    editingNurse,
+    deleteNurseId,
+    formOpen,
+    toast,
+  } = state;
 
-  const [form, setForm] =
-    useState<NurseFormData>(emptyForm);
-
-  const [editingNurse, setEditingNurse] =
-    useState<Nurse | null>(null);
-
-  const [deleteNurseId, setDeleteNurseId] =
-    useState<number | null>(null);
-
-  const [formOpen, setFormOpen] =
-    useState(false);
-
-  const [toast, setToast] = useState({
-    show: false,
-    message: "",
-    type: "success",
-  });
+  const updateState = <
+    K extends keyof NursesState
+  >(
+    field: K,
+    value: NursesState[K]
+  ) => {
+    setState((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
   const showToast = (
     message: string,
     type: "success" | "error" = "success"
   ) => {
-    setToast({
+    updateState("toast", {
       show: true,
       message,
       type,
@@ -69,16 +91,24 @@ export default function NursesPage() {
 
   const fetchData = async () => {
     try {
-      setLoading(true);
+      updateState(
+        "loading",
+        true
+      );
 
-      const [nurseData, departmentData] =
-        await Promise.all([
-          getNurses(),
-          getDepartments(),
-        ]);
+      const [
+        nurseData,
+        departmentData,
+      ] = await Promise.all([
+        getNurses(),
+        getDepartments(),
+      ]);
 
-      setNurses(nurseData);
-      setDepartments(departmentData);
+      setState((prev) => ({
+        ...prev,
+        nurses: nurseData,
+        departments: departmentData,
+      }));
     } catch (error) {
       showToast(
         error instanceof Error
@@ -87,7 +117,10 @@ export default function NursesPage() {
         "error"
       );
     } finally {
-      setLoading(false);
+      updateState(
+        "loading",
+        false
+      );
     }
   };
 
@@ -100,43 +133,71 @@ export default function NursesPage() {
       HTMLInputElement | HTMLSelectElement
     >
   ) => {
-    setForm((previous) => ({
-      ...previous,
-      [e.target.name]: e.target.value,
+    const {
+      name,
+      value,
+    } = e.target;
+
+    setState((prev) => ({
+      ...prev,
+      form: {
+        ...prev.form,
+        [name]: value,
+      },
     }));
   };
 
   const openCreateModal = () => {
-    setEditingNurse(null);
-    setForm(emptyForm);
-    setFormOpen(true);
+    setState((prev) => ({
+      ...prev,
+      editingNurse: null,
+      form: emptyForm,
+      formOpen: true,
+    }));
   };
 
-  const openEditModal = (nurse: Nurse) => {
-    setEditingNurse(nurse);
+  const openEditModal = (
+    nurse: Nurse
+  ) => {
+    setState((prev) => ({
+      ...prev,
 
-    setForm({
-      first_name: nurse.first_name,
-      last_name: nurse.last_name,
-      shift_timing: nurse.shift_timing,
-      contact_number:
-        nurse.contact_number || "",
-      department_id: String(
-        nurse.department_id
-      ),
-    });
+      editingNurse: nurse,
 
-    setFormOpen(true);
+      form: {
+        first_name:
+          nurse.first_name,
+
+        last_name:
+          nurse.last_name,
+
+        shift_timing:
+          nurse.shift_timing,
+
+        contact_number:
+          nurse.contact_number || "",
+
+        department_id:
+          String(
+            nurse.department_id
+          ),
+      },
+
+      formOpen: true,
+    }));
   };
 
   const closeFormModal = () => {
-    setFormOpen(false);
-    setEditingNurse(null);
-    setForm(emptyForm);
+    setState((prev) => ({
+      ...prev,
+      formOpen: false,
+      editingNurse: null,
+      form: emptyForm,
+    }));
   };
 
   const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
+    e: React.SubmitEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
 
@@ -155,7 +216,10 @@ export default function NursesPage() {
     }
 
     try {
-      setSubmitting(true);
+      updateState(
+        "submitting",
+        true
+      );
 
       if (editingNurse) {
         await updateNurse(
@@ -167,7 +231,9 @@ export default function NursesPage() {
           "Nurse updated successfully."
         );
       } else {
-        await createNurse(form);
+        await createNurse(
+          form
+        );
 
         showToast(
           "Nurse added successfully."
@@ -185,19 +251,32 @@ export default function NursesPage() {
         "error"
       );
     } finally {
-      setSubmitting(false);
+      updateState(
+        "submitting",
+        false
+      );
     }
   };
 
   const handleDelete = async () => {
-    if (!deleteNurseId) return;
+    if (deleteNurseId === null) {
+      return;
+    }
 
     try {
-      setSubmitting(true);
+      updateState(
+        "submitting",
+        true
+      );
 
-      await deleteNurse(deleteNurseId);
+      await deleteNurse(
+        deleteNurseId
+      );
 
-      setDeleteNurseId(null);
+      updateState(
+        "deleteNurseId",
+        null
+      );
 
       showToast(
         "Nurse deleted successfully."
@@ -212,12 +291,16 @@ export default function NursesPage() {
         "error"
       );
     } finally {
-      setSubmitting(false);
+      updateState(
+        "submitting",
+        false
+      );
     }
   };
 
   return (
     <div className="space-y-6">
+      {/* Page Header */}
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -230,13 +313,18 @@ export default function NursesPage() {
           </p>
         </div>
 
-        <Button onClick={openCreateModal}>
+        <Button
+          onClick={
+            openCreateModal
+          }
+        >
           + Add Nurse
         </Button>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      {/* Nurse List */}
 
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 px-6 py-5">
           <h2 className="text-lg font-semibold text-slate-900">
             Nurse List
@@ -262,7 +350,11 @@ export default function NursesPage() {
             </p>
 
             <div className="mt-5">
-              <Button onClick={openCreateModal}>
+              <Button
+                onClick={
+                  openCreateModal
+                }
+              >
                 + Add Nurse
               </Button>
             </div>
@@ -270,7 +362,6 @@ export default function NursesPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-
               <thead className="bg-slate-50">
                 <tr className="text-xs uppercase tracking-wide text-slate-500">
                   <th className="px-6 py-4">
@@ -296,86 +387,97 @@ export default function NursesPage() {
               </thead>
 
               <tbody>
-                {nurses.map((nurse) => (
-                  <tr
-                    key={nurse.nurse_id}
-                    className="border-t border-slate-100 transition hover:bg-slate-50/70"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
+                {nurses.map(
+                  (nurse) => (
+                    <tr
+                      key={
+                        nurse.nurse_id
+                      }
+                      className="border-t border-slate-100 transition hover:bg-slate-50/70"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-purple-50 font-semibold text-purple-600">
+                            {nurse.first_name
+                              .charAt(0)
+                              .toUpperCase()}
 
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-purple-50 font-semibold text-purple-600">
-                          {nurse.first_name
-                            .charAt(0)
-                            .toUpperCase()}
-                          {nurse.last_name
-                            .charAt(0)
-                            .toUpperCase()}
+                            {nurse.last_name
+                              .charAt(0)
+                              .toUpperCase()}
+                          </div>
+
+                          <div>
+                            <p className="font-medium text-slate-900">
+                              {nurse.first_name}{" "}
+                              {nurse.last_name}
+                            </p>
+
+                            <p className="text-xs text-slate-400">
+                              ID #
+                              {nurse.nurse_id}
+                            </p>
+                          </div>
                         </div>
+                      </td>
 
-                        <div>
-                          <p className="font-medium text-slate-900">
-                            {nurse.first_name}{" "}
-                            {nurse.last_name}
-                          </p>
+                      <td className="px-6 py-4">
+                        <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+                          {nurse.departments
+                            ?.name ||
+                            "Not assigned"}
+                        </span>
+                      </td>
 
-                          <p className="text-xs text-slate-400">
-                            ID #{nurse.nurse_id}
-                          </p>
+                      <td className="px-6 py-4">
+                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                          {
+                            nurse.shift_timing
+                          }
+                        </span>
+                      </td>
+
+                      <td className="px-6 py-4 text-slate-600">
+                        {nurse.contact_number ||
+                          "—"}
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="secondary"
+                            onClick={() =>
+                              openEditModal(
+                                nurse
+                              )
+                            }
+                          >
+                            Edit
+                          </Button>
+
+                          <Button
+                            variant="danger"
+                            onClick={() =>
+                              updateState(
+                                "deleteNurseId",
+                                nurse.nurse_id
+                              )
+                            }
+                          >
+                            Delete
+                          </Button>
                         </div>
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
-                        {nurse.departments?.name ||
-                          "Not assigned"}
-                      </span>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
-                        {nurse.shift_timing}
-                      </span>
-                    </td>
-
-                    <td className="px-6 py-4 text-slate-600">
-                      {nurse.contact_number || "—"}
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="flex justify-end gap-2">
-
-                        <Button
-                          variant="secondary"
-                          onClick={() =>
-                            openEditModal(nurse)
-                          }
-                        >
-                          Edit
-                        </Button>
-
-                        <Button
-                          variant="danger"
-                          onClick={() =>
-                            setDeleteNurseId(
-                              nurse.nurse_id
-                            )
-                          }
-                        >
-                          Delete
-                        </Button>
-
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  )
+                )}
               </tbody>
-
             </table>
           </div>
         )}
       </div>
+
+      {/* Add / Edit Nurse Modal */}
 
       <Modal
         open={formOpen}
@@ -384,21 +486,27 @@ export default function NursesPage() {
             ? "Edit Nurse"
             : "Add Nurse"
         }
-        onClose={closeFormModal}
+        onClose={
+          closeFormModal
+        }
       >
         <form
-          onSubmit={handleSubmit}
+          onSubmit={
+            handleSubmit
+          }
           className="space-y-5"
         >
-
           <div className="grid gap-4 sm:grid-cols-2">
-
             <Input
               label="First Name"
               error=""
               name="first_name"
-              value={form.first_name}
-              onChange={handleChange}
+              value={
+                form.first_name
+              }
+              onChange={
+                handleChange
+              }
               placeholder="Enter first name"
               required
             />
@@ -407,8 +515,12 @@ export default function NursesPage() {
               label="Last Name"
               error=""
               name="last_name"
-              value={form.last_name}
-              onChange={handleChange}
+              value={
+                form.last_name
+              }
+              onChange={
+                handleChange
+              }
               placeholder="Enter last name"
               required
             />
@@ -416,6 +528,7 @@ export default function NursesPage() {
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Shift Timing
+
                 <span className="ml-1 text-red-500">
                   *
                 </span>
@@ -423,8 +536,12 @@ export default function NursesPage() {
 
               <select
                 name="shift_timing"
-                value={form.shift_timing}
-                onChange={handleChange}
+                value={
+                  form.shift_timing
+                }
+                onChange={
+                  handleChange
+                }
                 required
                 className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               >
@@ -450,14 +567,19 @@ export default function NursesPage() {
               label="Contact Number"
               error=""
               name="contact_number"
-              value={form.contact_number}
-              onChange={handleChange}
+              value={
+                form.contact_number
+              }
+              onChange={
+                handleChange
+              }
               placeholder="03001234567"
             />
 
             <div className="sm:col-span-2">
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Department
+
                 <span className="ml-1 text-red-500">
                   *
                 </span>
@@ -465,8 +587,12 @@ export default function NursesPage() {
 
               <select
                 name="department_id"
-                value={form.department_id}
-                onChange={handleChange}
+                value={
+                  form.department_id
+                }
+                onChange={
+                  handleChange
+                }
                 required
                 className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               >
@@ -484,28 +610,32 @@ export default function NursesPage() {
                         department.department_id
                       }
                     >
-                      {department.name}
+                      {
+                        department.name
+                      }
                     </option>
                   )
                 )}
               </select>
             </div>
-
           </div>
 
           <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
-
             <Button
               type="button"
               variant="secondary"
-              onClick={closeFormModal}
+              onClick={
+                closeFormModal
+              }
             >
               Cancel
             </Button>
 
             <Button
               type="submit"
-              disabled={submitting}
+              disabled={
+                submitting
+              }
             >
               {submitting
                 ? "Saving..."
@@ -513,36 +643,56 @@ export default function NursesPage() {
                   ? "Update Nurse"
                   : "Add Nurse"}
             </Button>
-
           </div>
         </form>
       </Modal>
 
+      {/* Delete Confirmation */}
+
       <ConfirmModal
-        open={deleteNurseId !== null}
+        open={
+          deleteNurseId !== null
+        }
         title="Delete Nurse"
         message="Are you sure you want to delete this nurse? This action cannot be undone."
         confirmText="Delete Nurse"
-        loading={submitting}
-        onConfirm={handleDelete}
+        loading={
+          submitting
+        }
+        onConfirm={
+          handleDelete
+        }
         onCancel={() =>
-          setDeleteNurseId(null)
+          updateState(
+            "deleteNurseId",
+            null
+          )
         }
       />
 
+      {/* Toast */}
+
       {toast.show && (
         <Toast
-          message={toast.message}
-          type={toast.type}
+          message={
+            toast.message
+          }
+          type={
+            toast.type
+          }
           onClose={() =>
-            setToast((previous) => ({
-              ...previous,
-              show: false,
-            }))
+            setState(
+              (prev) => ({
+                ...prev,
+                toast: {
+                  ...prev.toast,
+                  show: false,
+                },
+              })
+            )
           }
         />
       )}
-
     </div>
   );
 }

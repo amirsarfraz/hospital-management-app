@@ -26,3 +26,9 @@ export type Department = {
     departments: Department[];
     recentPatients: Patient[];
   };
+  export type DashboardState = {
+    authLoading: boolean;
+    dashboard: DashboardData | null;
+    loading: boolean;
+    error: string;
+  };

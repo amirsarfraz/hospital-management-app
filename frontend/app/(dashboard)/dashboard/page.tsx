@@ -1,69 +1,109 @@
 "use client";
+
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { useEffect, useState } from "react";
-
 import { getDashboardData } from "@/services/dashboardService";
-import type { DashboardData } from "@/types/dashboard";
+import type { DashboardState } from "@/types/dashboard";
 
 export default function DashboardPage() {
   const router = useRouter();
-const [authLoading, setAuthLoading] = useState(true);
-  const [dashboard, setDashboard] =
-    useState<DashboardData | null>(null);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [state, setState] =
+    useState<DashboardState>({
+      authLoading: true,
+      dashboard: null,
+      loading: true,
+      error: "",
+    });
 
-  const [error, setError] =
-    useState("");
+  const {
+    authLoading,
+    dashboard,
+    loading,
+    error,
+  } = state;
+
+  const updateState = <
+    K extends keyof DashboardState
+  >(
+    field: K,
+    value: DashboardState[K]
+  ) => {
+    setState((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
   useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        setLoading(true);
-        setError("");
+    const fetchDashboard =
+      async () => {
+        try {
+          setState((prev) => ({
+            ...prev,
+            loading: true,
+            error: "",
+          }));
 
-        const data =
-          await getDashboardData();
+          const data =
+            await getDashboardData();
 
-        setDashboard(data);
-      } catch (error) {
-        console.error(error);
+          updateState(
+            "dashboard",
+            data
+          );
+        } catch (error) {
+          console.error(error);
 
-        setError(
-          error instanceof Error
-            ? error.message
-            : "Something went wrong"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
+          updateState(
+            "error",
+            error instanceof Error
+              ? error.message
+              : "Something went wrong"
+          );
+        } finally {
+          updateState(
+            "loading",
+            false
+          );
+        }
+      };
 
     fetchDashboard();
   }, []);
+
   useEffect(() => {
-    const checkAuth = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-  
-      if (!session) {
-        router.replace("/login");
-        return;
-      }
-  
-      setAuthLoading(false);
-    };
-  
+    const checkAuth =
+      async () => {
+        const {
+          data: { session },
+        } =
+          await supabase.auth.getSession();
+
+        if (!session) {
+          router.replace(
+            "/login"
+          );
+
+          return;
+        }
+
+        updateState(
+          "authLoading",
+          false
+        );
+      };
+
     checkAuth();
   }, [router]);
-  
+
   if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p>Checking authentication...</p>
+        <p>
+          Checking authentication...
+        </p>
       </div>
     );
   }

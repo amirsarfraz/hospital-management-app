@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
-
+import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
@@ -21,6 +17,8 @@ import {
 import type {
   Room,
   RoomFormData,
+  RoomsState,
+  RoomStatus,
 } from "@/types/room";
 
 const emptyForm: RoomFormData = {
@@ -31,58 +29,54 @@ const emptyForm: RoomFormData = {
 };
 
 export default function RoomsPage() {
-  const [rooms, setRooms] =
-    useState<Room[]>([]);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [
-    submitting,
-    setSubmitting,
-  ] = useState(false);
-
-  const [form, setForm] =
-    useState<RoomFormData>(
-      emptyForm
-    );
-
-  const [
-    editingRoom,
-    setEditingRoom,
-  ] = useState<Room | null>(null);
-
-  const [
-    deleteRoomNumber,
-    setDeleteRoomNumber,
-  ] = useState<number | null>(
-    null
-  );
-
-  const [formOpen, setFormOpen] =
-    useState(false);
-
-  const [search, setSearch] =
-    useState("");
-
-  const [
-    statusFilter,
-    setStatusFilter,
-  ] = useState("all");
-
-  const [toast, setToast] =
-    useState({
-      show: false,
-      message: "",
-      type: "success",
+  const [state, setState] =
+    useState<RoomsState>({
+      rooms: [],
+      loading: true,
+      submitting: false,
+      form: emptyForm,
+      editingRoom: null,
+      deleteRoomNumber: null,
+      formOpen: false,
+      search: "",
+      statusFilter: "all",
+      toast: {
+        show: false,
+        message: "",
+        type: "success",
+      },
     });
+
+  const {
+    rooms,
+    loading,
+    submitting,
+    form,
+    editingRoom,
+    deleteRoomNumber,
+    formOpen,
+    search,
+    statusFilter,
+    toast,
+  } = state;
+
+  const updateState = <
+    K extends keyof RoomsState
+  >(
+    field: K,
+    value: RoomsState[K]
+  ) => {
+    setState((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
   const showToast = (
     message: string,
-    type: "success" | "error" =
-      "success"
+    type: "success" | "error" = "success"
   ) => {
-    setToast({
+    updateState("toast", {
       show: true,
       message,
       type,
@@ -91,12 +85,18 @@ export default function RoomsPage() {
 
   const fetchRooms = async () => {
     try {
-      setLoading(true);
+      updateState(
+        "loading",
+        true
+      );
 
       const data =
         await getRooms();
 
-      setRooms(data);
+      updateState(
+        "rooms",
+        data
+      );
     } catch (error) {
       showToast(
         error instanceof Error
@@ -105,7 +105,10 @@ export default function RoomsPage() {
         "error"
       );
     } finally {
-      setLoading(false);
+      updateState(
+        "loading",
+        false
+      );
     }
   };
 
@@ -119,51 +122,70 @@ export default function RoomsPage() {
       | HTMLSelectElement
     >
   ) => {
-    setForm((previous) => ({
-      ...previous,
-      [e.target.name]:
-        e.target.value,
+    const {
+      name,
+      value,
+    } = e.target;
+
+    setState((prev) => ({
+      ...prev,
+      form: {
+        ...prev.form,
+        [name]: value,
+      },
     }));
   };
 
   const openCreateModal = () => {
-    setEditingRoom(null);
-    setForm(emptyForm);
-    setFormOpen(true);
+    setState((prev) => ({
+      ...prev,
+      editingRoom: null,
+      form: emptyForm,
+      formOpen: true,
+    }));
   };
 
   const openEditModal = (
     room: Room
   ) => {
-    setEditingRoom(room);
+    setState((prev) => ({
+      ...prev,
 
-    setForm({
-      room_number:
-        String(room.room_number),
+      editingRoom: room,
 
-      room_type:
-        room.room_type,
+      form: {
+        room_number:
+          String(
+            room.room_number
+          ),
 
-      daily_charge_rate:
-        String(
-          room.daily_charge_rate
-        ),
+        room_type:
+          room.room_type,
 
-      status:
-        room.status,
-    });
+        daily_charge_rate:
+          String(
+            room.daily_charge_rate
+          ),
 
-    setFormOpen(true);
+        status:
+          room.status,
+      },
+
+      formOpen: true,
+    }));
   };
 
   const closeFormModal = () => {
-    setFormOpen(false);
-    setEditingRoom(null);
-    setForm(emptyForm);
+    setState((prev) => ({
+      ...prev,
+      formOpen: false,
+      editingRoom: null,
+      form: emptyForm,
+    }));
   };
 
   const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
+    e: React.SubmitEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
 
@@ -195,7 +217,10 @@ export default function RoomsPage() {
     }
 
     try {
-      setSubmitting(true);
+      updateState(
+        "submitting",
+        true
+      );
 
       if (editingRoom) {
         await updateRoom(
@@ -207,7 +232,9 @@ export default function RoomsPage() {
           "Room updated successfully."
         );
       } else {
-        await createRoom(form);
+        await createRoom(
+          form
+        );
 
         showToast(
           "Room added successfully."
@@ -225,45 +252,54 @@ export default function RoomsPage() {
         "error"
       );
     } finally {
-      setSubmitting(false);
+      updateState(
+        "submitting",
+        false
+      );
     }
   };
 
-  const handleDelete =
-    async () => {
-      if (
-        deleteRoomNumber === null
-      ) {
-        return;
-      }
+  const handleDelete = async () => {
+    if (
+      deleteRoomNumber === null
+    ) {
+      return;
+    }
 
-      try {
-        setSubmitting(true);
+    try {
+      updateState(
+        "submitting",
+        true
+      );
 
-        await deleteRoom(
-          deleteRoomNumber
-        );
+      await deleteRoom(
+        deleteRoomNumber
+      );
 
-        setDeleteRoomNumber(
-          null
-        );
+      updateState(
+        "deleteRoomNumber",
+        null
+      );
 
-        showToast(
-          "Room deleted successfully."
-        );
+      showToast(
+        "Room deleted successfully."
+      );
 
-        await fetchRooms();
-      } catch (error) {
-        showToast(
-          error instanceof Error
-            ? error.message
-            : "Failed to delete room",
-          "error"
-        );
-      } finally {
-        setSubmitting(false);
-      }
-    };
+      await fetchRooms();
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Failed to delete room",
+        "error"
+      );
+    } finally {
+      updateState(
+        "submitting",
+        false
+      );
+    }
+  };
 
   const filteredRooms =
     rooms.filter((room) => {
@@ -280,7 +316,7 @@ export default function RoomsPage() {
       const matchesStatus =
         statusFilter === "all" ||
         room.status ===
-          statusFilter;
+        statusFilter;
 
       return (
         matchesSearch &&
@@ -311,11 +347,9 @@ export default function RoomsPage() {
 
   return (
     <div className="space-y-6">
-
       {/* Header */}
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
         <div>
           <h1 className="text-3xl font-bold text-slate-900">
             Rooms
@@ -335,13 +369,11 @@ export default function RoomsPage() {
         >
           + Add Room
         </Button>
-
       </div>
 
       {/* Statistics */}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-sm text-slate-500">
             Total Rooms
@@ -381,17 +413,16 @@ export default function RoomsPage() {
             {maintenanceCount}
           </p>
         </div>
-
       </div>
 
       {/* Filters */}
 
       <div className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[1fr_220px]">
-
         <input
           value={search}
           onChange={(e) =>
-            setSearch(
+            updateState(
+              "search",
               e.target.value
             )
           }
@@ -402,8 +433,11 @@ export default function RoomsPage() {
         <select
           value={statusFilter}
           onChange={(e) =>
-            setStatusFilter(
-              e.target.value
+            updateState(
+              "statusFilter",
+              e.target.value as
+              | "all"
+              | RoomStatus
             )
           }
           className="h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-blue-500"
@@ -424,13 +458,11 @@ export default function RoomsPage() {
             Maintenance
           </option>
         </select>
-
       </div>
 
       {/* Table */}
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-
         <div className="border-b border-slate-200 px-6 py-5">
           <h2 className="text-lg font-semibold text-slate-900">
             Room List
@@ -455,12 +487,9 @@ export default function RoomsPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-
             <table className="w-full text-left text-sm">
-
               <thead className="bg-slate-50">
                 <tr className="text-xs uppercase tracking-wide text-slate-500">
-
                   <th className="px-6 py-4">
                     Room
                   </th>
@@ -480,7 +509,6 @@ export default function RoomsPage() {
                   <th className="px-6 py-4 text-right">
                     Actions
                   </th>
-
                 </tr>
               </thead>
 
@@ -493,7 +521,6 @@ export default function RoomsPage() {
                       }
                       className="border-t border-slate-100 hover:bg-slate-50/70"
                     >
-
                       <td className="px-6 py-4 font-semibold text-slate-900">
                         Room{" "}
                         {
@@ -515,29 +542,24 @@ export default function RoomsPage() {
                       </td>
 
                       <td className="px-6 py-4">
-
                         <span
-                          className={`rounded-full px-3 py-1 text-xs font-medium ${
-                            room.status ===
+                          className={`rounded-full px-3 py-1 text-xs font-medium ${room.status ===
                             "available"
-                              ? "bg-emerald-50 text-emerald-700"
-                              : room.status ===
-                                  "occupied"
-                                ? "bg-amber-50 text-amber-700"
-                                : "bg-red-50 text-red-700"
-                          }`}
+                            ? "bg-emerald-50 text-emerald-700"
+                            : room.status ===
+                              "occupied"
+                              ? "bg-amber-50 text-amber-700"
+                              : "bg-red-50 text-red-700"
+                            }`}
                         >
                           {
                             room.status
                           }
                         </span>
-
                       </td>
 
                       <td className="px-6 py-4">
-
                         <div className="flex justify-end gap-2">
-
                           <Button
                             variant="secondary"
                             onClick={() =>
@@ -552,25 +574,21 @@ export default function RoomsPage() {
                           <Button
                             variant="danger"
                             onClick={() =>
-                              setDeleteRoomNumber(
+                              updateState(
+                                "deleteRoomNumber",
                                 room.room_number
                               )
                             }
                           >
                             Delete
                           </Button>
-
                         </div>
-
                       </td>
-
                     </tr>
                   )
                 )}
               </tbody>
-
             </table>
-
           </div>
         )}
       </div>
@@ -584,16 +602,17 @@ export default function RoomsPage() {
             ? "Edit Room"
             : "Add Room"
         }
-        onClose={closeFormModal}
+        onClose={
+          closeFormModal
+        }
       >
-
         <form
-          onSubmit={handleSubmit}
+          onSubmit={
+            handleSubmit
+          }
           className="space-y-5"
         >
-
           <div className="grid gap-4 sm:grid-cols-2">
-
             <Input
               label="Room Number"
               error=""
@@ -602,7 +621,9 @@ export default function RoomsPage() {
               value={
                 form.room_number
               }
-              onChange={handleChange}
+              onChange={
+                handleChange
+              }
               disabled={
                 editingRoom !== null
               }
@@ -653,7 +674,9 @@ export default function RoomsPage() {
               value={
                 form.daily_charge_rate
               }
-              onChange={handleChange}
+              onChange={
+                handleChange
+              }
               placeholder="5000"
               required
             />
@@ -687,11 +710,9 @@ export default function RoomsPage() {
                 </option>
               </select>
             </div>
-
           </div>
 
           <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
-
             <Button
               type="button"
               variant="secondary"
@@ -714,12 +735,11 @@ export default function RoomsPage() {
                   ? "Update Room"
                   : "Add Room"}
             </Button>
-
           </div>
-
         </form>
-
       </Modal>
+
+      {/* Delete Modal */}
 
       <ConfirmModal
         open={
@@ -728,34 +748,43 @@ export default function RoomsPage() {
         title="Delete Room"
         message="Are you sure you want to delete this room? This action cannot be undone."
         confirmText="Delete Room"
-        loading={submitting}
+        loading={
+          submitting
+        }
         onConfirm={
           handleDelete
         }
         onCancel={() =>
-          setDeleteRoomNumber(
+          updateState(
+            "deleteRoomNumber",
             null
           )
         }
       />
+
+      {/* Toast */}
 
       {toast.show && (
         <Toast
           message={
             toast.message
           }
-          type={toast.type}
+          type={
+            toast.type
+          }
           onClose={() =>
-            setToast(
-              (previous) => ({
-                ...previous,
-                show: false,
+            setState(
+              (prev) => ({
+                ...prev,
+                toast: {
+                  ...prev.toast,
+                  show: false,
+                },
               })
             )
           }
         />
       )}
-
     </div>
   );
 }

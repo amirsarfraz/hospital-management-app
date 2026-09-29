@@ -22,3 +22,22 @@ export type RoomFormData = {
   daily_charge_rate: string;
   status: string;
 };
+
+export type RoomToast = {
+  show: boolean;
+  message: string;
+  type: "success" | "error";
+};
+
+export type RoomsState = {
+  rooms: Room[];
+  loading: boolean;
+  submitting: boolean;
+  form: RoomFormData;
+  editingRoom: Room | null;
+  deleteRoomNumber: number | null;
+  formOpen: boolean;
+  search: string;
+  statusFilter: "all" | RoomStatus;
+  toast: RoomToast;
+};

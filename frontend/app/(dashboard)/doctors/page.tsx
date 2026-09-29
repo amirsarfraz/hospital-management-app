@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {useEffect,useState} from "react";
 
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -15,12 +15,14 @@ import {
   deleteDoctor,
 } from "@/services/doctorService";
 
-import { getDepartments } from "@/services/departmentService";
+import {
+  getDepartments,
+} from "@/services/departmentService";
 
 import type {
   Doctor,
-  Department,
   DoctorFormData,
+  DoctorsState,
 } from "@/types/doctor";
 
 const emptyForm: DoctorFormData = {
@@ -33,35 +35,52 @@ const emptyForm: DoctorFormData = {
 };
 
 export default function DoctorsPage() {
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
+  const [state, setState] =
+    useState<DoctorsState>({
+      doctors: [],
+      departments: [],
+      loading: true,
+      submitting: false,
+      form: emptyForm,
+      editingDoctor: null,
+      deleteDoctorId: null,
+      isFormOpen: false,
+      toast: {
+        show: false,
+        message: "",
+        type: "success",
+      },
+    });
 
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const {
+    doctors,
+    departments,
+    loading,
+    submitting,
+    form,
+    editingDoctor,
+    deleteDoctorId,
+    isFormOpen,
+    toast,
+  } = state;
 
-  const [form, setForm] =
-    useState<DoctorFormData>(emptyForm);
-
-  const [editingDoctor, setEditingDoctor] =
-    useState<Doctor | null>(null);
-
-  const [deleteDoctorId, setDeleteDoctorId] =
-    useState<number | null>(null);
-
-  const [isFormOpen, setIsFormOpen] =
-    useState(false);
-
-  const [toast, setToast] = useState({
-    show: false,
-    message: "",
-    type: "success",
-  });
+  const updateState = <
+    K extends keyof DoctorsState
+  >(
+    field: K,
+    value: DoctorsState[K]
+  ) => {
+    setState((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
   const showToast = (
     message: string,
     type: "success" | "error" = "success"
   ) => {
-    setToast({
+    updateState("toast", {
       show: true,
       message,
       type,
@@ -70,16 +89,24 @@ export default function DoctorsPage() {
 
   const fetchData = async () => {
     try {
-      setLoading(true);
+      updateState(
+        "loading",
+        true
+      );
 
-      const [doctorData, departmentData] =
-        await Promise.all([
-          getDoctors(),
-          getDepartments(),
-        ]);
+      const [
+        doctorData,
+        departmentData,
+      ] = await Promise.all([
+        getDoctors(),
+        getDepartments(),
+      ]);
 
-      setDoctors(doctorData);
-      setDepartments(departmentData);
+      setState((prev) => ({
+        ...prev,
+        doctors: doctorData,
+        departments: departmentData,
+      }));
     } catch (error) {
       showToast(
         error instanceof Error
@@ -88,7 +115,10 @@ export default function DoctorsPage() {
         "error"
       );
     } finally {
-      setLoading(false);
+      updateState(
+        "loading",
+        false
+      );
     }
   };
 
@@ -101,45 +131,76 @@ export default function DoctorsPage() {
       HTMLInputElement | HTMLSelectElement
     >
   ) => {
-    setForm((previous) => ({
-      ...previous,
-      [e.target.name]: e.target.value,
+    const {
+      name,
+      value,
+    } = e.target;
+
+    setState((prev) => ({
+      ...prev,
+      form: {
+        ...prev.form,
+        [name]: value,
+      },
     }));
   };
 
   const openCreateModal = () => {
-    setEditingDoctor(null);
-    setForm(emptyForm);
-    setIsFormOpen(true);
+    setState((prev) => ({
+      ...prev,
+      editingDoctor: null,
+      form: emptyForm,
+      isFormOpen: true,
+    }));
   };
 
-  const openEditModal = (doctor: Doctor) => {
-    setEditingDoctor(doctor);
+  const openEditModal = (
+    doctor: Doctor
+  ) => {
+    setState((prev) => ({
+      ...prev,
 
-    setForm({
-      first_name: doctor.first_name,
-      last_name: doctor.last_name,
-      specialization: doctor.specialization,
-      years_experience: String(
-        doctor.years_experience
-      ),
-      contact_number: doctor.contact_number || "",
-      department_id: String(
-        doctor.department_id
-      ),
-    });
+      editingDoctor: doctor,
 
-    setIsFormOpen(true);
+      form: {
+        first_name:
+          doctor.first_name,
+
+        last_name:
+          doctor.last_name,
+
+        specialization:
+          doctor.specialization,
+
+        years_experience:
+          String(
+            doctor.years_experience
+          ),
+
+        contact_number:
+          doctor.contact_number || "",
+
+        department_id:
+          String(
+            doctor.department_id
+          ),
+      },
+
+      isFormOpen: true,
+    }));
   };
 
   const closeFormModal = () => {
-    setIsFormOpen(false);
-    setEditingDoctor(null);
-    setForm(emptyForm);
+    setState((prev) => ({
+      ...prev,
+      isFormOpen: false,
+      editingDoctor: null,
+      form: emptyForm,
+    }));
   };
 
   const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
+    e: React.SubmitEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
 
@@ -158,7 +219,10 @@ export default function DoctorsPage() {
     }
 
     try {
-      setSubmitting(true);
+      updateState(
+        "submitting",
+        true
+      );
 
       if (editingDoctor) {
         await updateDoctor(
@@ -170,7 +234,9 @@ export default function DoctorsPage() {
           "Doctor updated successfully."
         );
       } else {
-        await createDoctor(form);
+        await createDoctor(
+          form
+        );
 
         showToast(
           "Doctor added successfully."
@@ -188,19 +254,32 @@ export default function DoctorsPage() {
         "error"
       );
     } finally {
-      setSubmitting(false);
+      updateState(
+        "submitting",
+        false
+      );
     }
   };
 
   const handleDelete = async () => {
-    if (!deleteDoctorId) return;
+    if (deleteDoctorId === null) {
+      return;
+    }
 
     try {
-      setSubmitting(true);
+      updateState(
+        "submitting",
+        true
+      );
 
-      await deleteDoctor(deleteDoctorId);
+      await deleteDoctor(
+        deleteDoctorId
+      );
 
-      setDeleteDoctorId(null);
+      updateState(
+        "deleteDoctorId",
+        null
+      );
 
       showToast(
         "Doctor deleted successfully."
@@ -215,14 +294,17 @@ export default function DoctorsPage() {
         "error"
       );
     } finally {
-      setSubmitting(false);
+      updateState(
+        "submitting",
+        false
+      );
     }
   };
 
   return (
     <div className="space-y-6">
-
       {/* Page Header */}
+
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">
@@ -234,12 +316,17 @@ export default function DoctorsPage() {
           </p>
         </div>
 
-        <Button onClick={openCreateModal}>
+        <Button
+          onClick={
+            openCreateModal
+          }
+        >
           + Add Doctor
         </Button>
       </div>
 
       {/* Doctor Table */}
+
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 px-6 py-5">
           <h2 className="text-lg font-semibold text-slate-900">
@@ -266,7 +353,11 @@ export default function DoctorsPage() {
             </p>
 
             <div className="mt-5">
-              <Button onClick={openCreateModal}>
+              <Button
+                onClick={
+                  openCreateModal
+                }
+              >
                 + Add Doctor
               </Button>
             </div>
@@ -303,82 +394,95 @@ export default function DoctorsPage() {
               </thead>
 
               <tbody>
-                {doctors.map((doctor) => (
-                  <tr
-                    key={doctor.doctor_id}
-                    className="border-t border-slate-100 transition hover:bg-slate-50/70"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 font-semibold text-blue-600">
-                          {doctor.first_name
-                            .charAt(0)
-                            .toUpperCase()}
-                          {doctor.last_name
-                            .charAt(0)
-                            .toUpperCase()}
+                {doctors.map(
+                  (doctor) => (
+                    <tr
+                      key={
+                        doctor.doctor_id
+                      }
+                      className="border-t border-slate-100 transition hover:bg-slate-50/70"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 font-semibold text-blue-600">
+                            {doctor.first_name
+                              .charAt(0)
+                              .toUpperCase()}
+
+                            {doctor.last_name
+                              .charAt(0)
+                              .toUpperCase()}
+                          </div>
+
+                          <div>
+                            <p className="font-medium text-slate-900">
+                              Dr.{" "}
+                              {doctor.first_name}{" "}
+                              {doctor.last_name}
+                            </p>
+
+                            <p className="text-xs text-slate-400">
+                              ID #
+                              {doctor.doctor_id}
+                            </p>
+                          </div>
                         </div>
+                      </td>
 
-                        <div>
-                          <p className="font-medium text-slate-900">
-                            Dr. {doctor.first_name}{" "}
-                            {doctor.last_name}
-                          </p>
+                      <td className="px-6 py-4 text-slate-600">
+                        {doctor.specialization}
+                      </td>
 
-                          <p className="text-xs text-slate-400">
-                            ID #{doctor.doctor_id}
-                          </p>
+                      <td className="px-6 py-4">
+                        <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+                          {doctor.departments
+                            ?.name ||
+                            "Not assigned"}
+                        </span>
+                      </td>
+
+                      <td className="px-6 py-4 text-slate-600">
+                        {doctor.years_experience}{" "}
+                        {doctor.years_experience ===
+                        1
+                          ? "year"
+                          : "years"}
+                      </td>
+
+                      <td className="px-6 py-4 text-slate-600">
+                        {doctor.contact_number ||
+                          "—"}
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="secondary"
+                            onClick={() =>
+                              openEditModal(
+                                doctor
+                              )
+                            }
+                          >
+                            Edit
+                          </Button>
+
+                          <Button
+                            variant="danger"
+                            onClick={() =>
+                              updateState(
+                                "deleteDoctorId",
+                                doctor.doctor_id
+                              )
+                            }
+                          >
+                            Delete
+                          </Button>
                         </div>
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-4 text-slate-600">
-                      {doctor.specialization}
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
-                        {doctor.departments?.name ||
-                          "Not assigned"}
-                      </span>
-                    </td>
-
-                    <td className="px-6 py-4 text-slate-600">
-                      {doctor.years_experience}{" "}
-                      {doctor.years_experience === 1
-                        ? "year"
-                        : "years"}
-                    </td>
-
-                    <td className="px-6 py-4 text-slate-600">
-                      {doctor.contact_number || "—"}
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="secondary"
-                          onClick={() =>
-                            openEditModal(doctor)
-                          }
-                        >
-                          Edit
-                        </Button>
-
-                        <Button
-                          variant="danger"
-                          onClick={() =>
-                            setDeleteDoctorId(
-                              doctor.doctor_id
-                            )
-                          }
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  )
+                )}
               </tbody>
             </table>
           </div>
@@ -386,9 +490,12 @@ export default function DoctorsPage() {
       </div>
 
       {/* Add / Edit Doctor Modal */}
+
       <Modal
         open={isFormOpen}
-        onClose={closeFormModal}
+        onClose={
+          closeFormModal
+        }
         title={
           editingDoctor
             ? "Edit Doctor"
@@ -396,17 +503,22 @@ export default function DoctorsPage() {
         }
       >
         <form
-          onSubmit={handleSubmit}
+          onSubmit={
+            handleSubmit
+          }
           className="space-y-5"
         >
           <div className="grid gap-4 sm:grid-cols-2">
-
             <Input
               label="First Name"
               name="first_name"
               error=""
-              value={form.first_name}
-              onChange={handleChange}
+              value={
+                form.first_name
+              }
+              onChange={
+                handleChange
+              }
               placeholder="Enter first name"
               required
             />
@@ -415,8 +527,12 @@ export default function DoctorsPage() {
               label="Last Name"
               name="last_name"
               error=""
-              value={form.last_name}
-              onChange={handleChange}
+              value={
+                form.last_name
+              }
+              onChange={
+                handleChange
+              }
               placeholder="Enter last name"
               required
             />
@@ -425,8 +541,12 @@ export default function DoctorsPage() {
               label="Specialization"
               name="specialization"
               error=""
-              value={form.specialization}
-              onChange={handleChange}
+              value={
+                form.specialization
+              }
+              onChange={
+                handleChange
+              }
               placeholder="e.g. Cardiologist"
               required
             />
@@ -436,8 +556,12 @@ export default function DoctorsPage() {
               name="years_experience"
               type="number"
               error=""
-              value={form.years_experience}
-              onChange={handleChange}
+              value={
+                form.years_experience
+              }
+              onChange={
+                handleChange
+              }
               placeholder="e.g. 8"
               min="0"
             />
@@ -446,14 +570,19 @@ export default function DoctorsPage() {
               label="Contact Number"
               name="contact_number"
               error=""
-              value={form.contact_number}
-              onChange={handleChange}
+              value={
+                form.contact_number
+              }
+              onChange={
+                handleChange
+              }
               placeholder="03001234567"
             />
 
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Department
+
                 <span className="ml-1 text-red-500">
                   *
                 </span>
@@ -461,8 +590,12 @@ export default function DoctorsPage() {
 
               <select
                 name="department_id"
-                value={form.department_id}
-                onChange={handleChange}
+                value={
+                  form.department_id
+                }
+                onChange={
+                  handleChange
+                }
                 required
                 className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               >
@@ -480,7 +613,9 @@ export default function DoctorsPage() {
                         department.department_id
                       }
                     >
-                      {department.name}
+                      {
+                        department.name
+                      }
                     </option>
                   )
                 )}
@@ -492,14 +627,18 @@ export default function DoctorsPage() {
             <Button
               type="button"
               variant="secondary"
-              onClick={closeFormModal}
+              onClick={
+                closeFormModal
+              }
             >
               Cancel
             </Button>
 
             <Button
               type="submit"
-              disabled={submitting}
+              disabled={
+                submitting
+              }
             >
               {submitting
                 ? "Saving..."
@@ -512,8 +651,12 @@ export default function DoctorsPage() {
       </Modal>
 
       {/* Delete Confirmation */}
+
       <ConfirmModal
-        open={deleteDoctorId !== null}
+        open={
+          deleteDoctorId !==
+          null
+        }
         title="Delete Doctor"
         message="Are you sure you want to delete this doctor? This action cannot be undone."
         confirmText={
@@ -521,22 +664,37 @@ export default function DoctorsPage() {
             ? "Deleting..."
             : "Delete Doctor"
         }
-        onConfirm={handleDelete}
+        onConfirm={
+          handleDelete
+        }
         onCancel={() =>
-          setDeleteDoctorId(null)
+          updateState(
+            "deleteDoctorId",
+            null
+          )
         }
       />
 
       {/* Toast */}
+
       {toast.show && (
         <Toast
-          message={toast.message}
-          type={toast.type}
+          message={
+            toast.message
+          }
+          type={
+            toast.type
+          }
           onClose={() =>
-            setToast((previous) => ({
-              ...previous,
-              show: false,
-            }))
+            setState(
+              (prev) => ({
+                ...prev,
+                toast: {
+                  ...prev.toast,
+                  show: false,
+                },
+              })
+            )
           }
         />
       )}
