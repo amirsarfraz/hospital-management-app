@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
@@ -18,6 +17,7 @@ import {
 import type {
   Patient,
   PatientFormData,
+  PatientsState,
 } from "@/types/patient";
 
 const emptyForm: PatientFormData = {
@@ -30,27 +30,52 @@ const emptyForm: PatientFormData = {
 };
 
 export default function PatientsPage() {
-  const [patients, setPatients] = useState<Patient[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const [state, setState] =
+    useState<PatientsState>({
+      patients: [],
+      loading: true,
+      submitting: false,
+      form: emptyForm,
+      editingPatient: null,
+      deletePatientId: null,
+      formOpen: false,
+      search: "",
+      toast: {
+        show: false,
+        message: "",
+        type: "success",
+      },
+    });
 
-  const [form, setForm] = useState<PatientFormData>(emptyForm);
-  const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
-  const [deletePatientId, setDeletePatientId] = useState<number | null>(null);
-  const [formOpen, setFormOpen] = useState(false);
-  const [search, setSearch] = useState("");
+  const {
+    patients,
+    loading,
+    submitting,
+    form,
+    editingPatient,
+    deletePatientId,
+    formOpen,
+    search,
+    toast,
+  } = state;
 
-  const [toast, setToast] = useState({
-    show: false,
-    message: "",
-    type: "success",
-  });
+  const updateState = <
+    K extends keyof PatientsState
+  >(
+    field: K,
+    value: PatientsState[K]
+  ) => {
+    setState((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
   const showToast = (
     message: string,
     type: "success" | "error" = "success"
   ) => {
-    setToast({
+    updateState("toast", {
       show: true,
       message,
       type,
@@ -59,11 +84,18 @@ export default function PatientsPage() {
 
   const fetchPatients = async () => {
     try {
-      setLoading(true);
+      updateState(
+        "loading",
+        true
+      );
 
-      const data = await getPatients();
+      const data =
+        await getPatients();
 
-      setPatients(data);
+      updateState(
+        "patients",
+        data
+      );
     } catch (error) {
       showToast(
         error instanceof Error
@@ -72,7 +104,10 @@ export default function PatientsPage() {
         "error"
       );
     } finally {
-      setLoading(false);
+      updateState(
+        "loading",
+        false
+      );
     }
   };
 
@@ -82,44 +117,77 @@ export default function PatientsPage() {
 
   const handleChange = (
     e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      | HTMLInputElement
+      | HTMLSelectElement
+      | HTMLTextAreaElement
     >
   ) => {
-    setForm((previous) => ({
-      ...previous,
-      [e.target.name]: e.target.value,
+    const {
+      name,
+      value,
+    } = e.target;
+
+    setState((prev) => ({
+      ...prev,
+      form: {
+        ...prev.form,
+        [name]: value,
+      },
     }));
   };
 
   const openCreateModal = () => {
-    setEditingPatient(null);
-    setForm(emptyForm);
-    setFormOpen(true);
+    setState((prev) => ({
+      ...prev,
+      editingPatient: null,
+      form: emptyForm,
+      formOpen: true,
+    }));
   };
 
-  const openEditModal = (patient: Patient) => {
-    setEditingPatient(patient);
+  const openEditModal = (
+    patient: Patient
+  ) => {
+    setState((prev) => ({
+      ...prev,
 
-    setForm({
-      first_name: patient.first_name,
-      last_name: patient.last_name,
-      date_of_birth: patient.date_of_birth,
-      gender: patient.gender,
-      address: patient.address || "",
-      phone_number: patient.phone_number,
-    });
+      editingPatient: patient,
 
-    setFormOpen(true);
+      form: {
+        first_name:
+          patient.first_name,
+
+        last_name:
+          patient.last_name,
+
+        date_of_birth:
+          patient.date_of_birth,
+
+        gender:
+          patient.gender,
+
+        address:
+          patient.address || "",
+
+        phone_number:
+          patient.phone_number,
+      },
+
+      formOpen: true,
+    }));
   };
 
   const closeFormModal = () => {
-    setFormOpen(false);
-    setEditingPatient(null);
-    setForm(emptyForm);
+    setState((prev) => ({
+      ...prev,
+      formOpen: false,
+      editingPatient: null,
+      form: emptyForm,
+    }));
   };
 
   const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
+    e: React.SubmitEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
 
@@ -139,7 +207,10 @@ export default function PatientsPage() {
     }
 
     try {
-      setSubmitting(true);
+      updateState(
+        "submitting",
+        true
+      );
 
       if (editingPatient) {
         await updatePatient(
@@ -151,7 +222,9 @@ export default function PatientsPage() {
           "Patient updated successfully."
         );
       } else {
-        await createPatient(form);
+        await createPatient(
+          form
+        );
 
         showToast(
           "Patient added successfully."
@@ -169,19 +242,32 @@ export default function PatientsPage() {
         "error"
       );
     } finally {
-      setSubmitting(false);
+      updateState(
+        "submitting",
+        false
+      );
     }
   };
 
   const handleDelete = async () => {
-    if (!deletePatientId) return;
+    if (deletePatientId === null) {
+      return;
+    }
 
     try {
-      setSubmitting(true);
+      updateState(
+        "submitting",
+        true
+      );
 
-      await deletePatient(deletePatientId);
+      await deletePatient(
+        deletePatientId
+      );
 
-      setDeletePatientId(null);
+      updateState(
+        "deletePatientId",
+        null
+      );
 
       showToast(
         "Patient deleted successfully."
@@ -196,25 +282,33 @@ export default function PatientsPage() {
         "error"
       );
     } finally {
-      setSubmitting(false);
+      updateState(
+        "submitting",
+        false
+      );
     }
   };
 
-  const filteredPatients = patients.filter((patient) => {
-    const text = `
-      ${patient.first_name}
-      ${patient.last_name}
-      ${patient.phone_number}
-      ${patient.gender}
-    `.toLowerCase();
+  const filteredPatients =
+    patients.filter(
+      (patient) => {
+        const text = `
+          ${patient.first_name}
+          ${patient.last_name}
+          ${patient.phone_number}
+          ${patient.gender}
+        `.toLowerCase();
 
-    return text.includes(search.toLowerCase());
-  });
+        return text.includes(
+          search.toLowerCase()
+        );
+      }
+    );
 
   return (
     <div className="space-y-6">
-
       {/* Header */}
+
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">
@@ -226,25 +320,35 @@ export default function PatientsPage() {
           </p>
         </div>
 
-        <Button onClick={openCreateModal}>
+        <Button
+          onClick={
+            openCreateModal
+          }
+        >
           + Add Patient
         </Button>
       </div>
 
       {/* Search */}
+
       <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <input
           type="text"
           placeholder="Search patients by name, phone or gender..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) =>
+            updateState(
+              "search",
+              e.target.value
+            )
+          }
           className="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
         />
       </div>
 
       {/* Patient Table */}
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
 
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 px-6 py-5">
           <h2 className="text-lg font-semibold text-slate-900">
             Patient List
@@ -259,7 +363,8 @@ export default function PatientsPage() {
           <div className="px-6 py-16 text-center text-sm text-slate-500">
             Loading patients...
           </div>
-        ) : filteredPatients.length === 0 ? (
+        ) : filteredPatients.length ===
+          0 ? (
           <div className="px-6 py-16 text-center">
             <h3 className="font-semibold text-slate-900">
               No patients found
@@ -273,12 +378,9 @@ export default function PatientsPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-
             <table className="w-full text-left text-sm">
-
               <thead className="bg-slate-50">
                 <tr className="text-xs uppercase tracking-wide text-slate-500">
-
                   <th className="px-6 py-4">
                     Patient
                   </th>
@@ -302,98 +404,108 @@ export default function PatientsPage() {
                   <th className="px-6 py-4 text-right">
                     Actions
                   </th>
-
                 </tr>
               </thead>
 
               <tbody>
-                {filteredPatients.map((patient) => (
-                  <tr
-                    key={patient.patient_id}
-                    className="border-t border-slate-100 hover:bg-slate-50/70"
-                  >
+                {filteredPatients.map(
+                  (patient) => (
+                    <tr
+                      key={
+                        patient.patient_id
+                      }
+                      className="border-t border-slate-100 hover:bg-slate-50/70"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 font-semibold text-emerald-600">
+                            {patient.first_name
+                              .charAt(0)
+                              .toUpperCase()}
 
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
+                            {patient.last_name
+                              .charAt(0)
+                              .toUpperCase()}
+                          </div>
 
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 font-semibold text-emerald-600">
-                          {patient.first_name
-                            .charAt(0)
-                            .toUpperCase()}
-                          {patient.last_name
-                            .charAt(0)
-                            .toUpperCase()}
+                          <div>
+                            <p className="font-medium text-slate-900">
+                              {patient.first_name}{" "}
+                              {patient.last_name}
+                            </p>
+
+                            <p className="text-xs text-slate-400">
+                              ID #
+                              {
+                                patient.patient_id
+                              }
+                            </p>
+                          </div>
                         </div>
+                      </td>
 
-                        <div>
-                          <p className="font-medium text-slate-900">
-                            {patient.first_name}{" "}
-                            {patient.last_name}
-                          </p>
+                      <td className="px-6 py-4 text-slate-600">
+                        {
+                          patient.date_of_birth
+                        }
+                      </td>
 
-                          <p className="text-xs text-slate-400">
-                            ID #{patient.patient_id}
-                          </p>
+                      <td className="px-6 py-4">
+                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                          {
+                            patient.gender
+                          }
+                        </span>
+                      </td>
+
+                      <td className="px-6 py-4 text-slate-600">
+                        {
+                          patient.phone_number
+                        }
+                      </td>
+
+                      <td className="max-w-[250px] truncate px-6 py-4 text-slate-600">
+                        {patient.address ||
+                          "—"}
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="secondary"
+                            onClick={() =>
+                              openEditModal(
+                                patient
+                              )
+                            }
+                          >
+                            Edit
+                          </Button>
+
+                          <Button
+                            variant="danger"
+                            onClick={() =>
+                              updateState(
+                                "deletePatientId",
+                                patient.patient_id
+                              )
+                            }
+                          >
+                            Delete
+                          </Button>
                         </div>
-
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-4 text-slate-600">
-                      {patient.date_of_birth}
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
-                        {patient.gender}
-                      </span>
-                    </td>
-
-                    <td className="px-6 py-4 text-slate-600">
-                      {patient.phone_number}
-                    </td>
-
-                    <td className="max-w-[250px] truncate px-6 py-4 text-slate-600">
-                      {patient.address || "—"}
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="flex justify-end gap-2">
-
-                        <Button
-                          variant="secondary"
-                          onClick={() =>
-                            openEditModal(patient)
-                          }
-                        >
-                          Edit
-                        </Button>
-
-                        <Button
-                          variant="danger"
-                          onClick={() =>
-                            setDeletePatientId(
-                              patient.patient_id
-                            )
-                          }
-                        >
-                          Delete
-                        </Button>
-
-                      </div>
-                    </td>
-
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  )
+                )}
               </tbody>
-
             </table>
-
           </div>
         )}
       </div>
 
       {/* Add / Edit Modal */}
+
       <Modal
         open={formOpen}
         title={
@@ -401,21 +513,27 @@ export default function PatientsPage() {
             ? "Edit Patient"
             : "Add Patient"
         }
-        onClose={closeFormModal}
+        onClose={
+          closeFormModal
+        }
       >
         <form
-          onSubmit={handleSubmit}
+          onSubmit={
+            handleSubmit
+          }
           className="space-y-5"
         >
-
           <div className="grid gap-4 sm:grid-cols-2">
-
             <Input
               label="First Name"
               error=""
               name="first_name"
-              value={form.first_name}
-              onChange={handleChange}
+              value={
+                form.first_name
+              }
+              onChange={
+                handleChange
+              }
               placeholder="Enter first name"
               required
             />
@@ -424,8 +542,12 @@ export default function PatientsPage() {
               label="Last Name"
               error=""
               name="last_name"
-              value={form.last_name}
-              onChange={handleChange}
+              value={
+                form.last_name
+              }
+              onChange={
+                handleChange
+              }
               placeholder="Enter last name"
               required
             />
@@ -435,8 +557,12 @@ export default function PatientsPage() {
               error=""
               type="date"
               name="date_of_birth"
-              value={form.date_of_birth}
-              onChange={handleChange}
+              value={
+                form.date_of_birth
+              }
+              onChange={
+                handleChange
+              }
               required
             />
 
@@ -447,8 +573,12 @@ export default function PatientsPage() {
 
               <select
                 name="gender"
-                value={form.gender}
-                onChange={handleChange}
+                value={
+                  form.gender
+                }
+                onChange={
+                  handleChange
+                }
                 required
                 className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               >
@@ -474,44 +604,52 @@ export default function PatientsPage() {
               label="Phone Number"
               error=""
               name="phone_number"
-              value={form.phone_number}
-              onChange={handleChange}
+              value={
+                form.phone_number
+              }
+              onChange={
+                handleChange
+              }
               placeholder="03001234567"
               required
             />
 
             <div className="sm:col-span-2">
-
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Address
               </label>
 
               <textarea
                 name="address"
-                value={form.address}
-                onChange={handleChange}
+                value={
+                  form.address
+                }
+                onChange={
+                  handleChange
+                }
                 placeholder="Enter patient address"
                 rows={3}
                 className="w-full rounded-lg border border-slate-300 px-3 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
-
             </div>
-
           </div>
 
           <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
-
             <Button
               type="button"
               variant="secondary"
-              onClick={closeFormModal}
+              onClick={
+                closeFormModal
+              }
             >
               Cancel
             </Button>
 
             <Button
               type="submit"
-              disabled={submitting}
+              disabled={
+                submitting
+              }
             >
               {submitting
                 ? "Saving..."
@@ -519,39 +657,56 @@ export default function PatientsPage() {
                   ? "Update Patient"
                   : "Add Patient"}
             </Button>
-
           </div>
-
         </form>
       </Modal>
 
       {/* Delete Modal */}
+
       <ConfirmModal
-        open={deletePatientId !== null}
+        open={
+          deletePatientId !== null
+        }
         title="Delete Patient"
         message="Are you sure you want to delete this patient? This action cannot be undone."
         confirmText="Delete Patient"
-        loading={submitting}
-        onConfirm={handleDelete}
+        loading={
+          submitting
+        }
+        onConfirm={
+          handleDelete
+        }
         onCancel={() =>
-          setDeletePatientId(null)
+          updateState(
+            "deletePatientId",
+            null
+          )
         }
       />
 
       {/* Toast */}
+
       {toast.show && (
         <Toast
-          message={toast.message}
-          type={toast.type}
+          message={
+            toast.message
+          }
+          type={
+            toast.type
+          }
           onClose={() =>
-            setToast((previous) => ({
-              ...previous,
-              show: false,
-            }))
+            setState(
+              (prev) => ({
+                ...prev,
+                toast: {
+                  ...prev.toast,
+                  show: false,
+                },
+              })
+            )
           }
         />
       )}
-
     </div>
   );
 }

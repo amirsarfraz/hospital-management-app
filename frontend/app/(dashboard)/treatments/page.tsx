@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
-
+import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
@@ -18,16 +14,19 @@ import {
   deleteTreatment,
 } from "@/services/treatmentService";
 
-import { getPatients } from "@/services/patientService";
-import { getDoctors } from "@/services/doctorService";
+import {
+  getPatients,
+} from "@/services/patientService";
+
+import {
+  getDoctors,
+} from "@/services/doctorService";
 
 import type {
   Treatment,
   TreatmentFormData,
+  TreatmentsState,
 } from "@/types/treatment";
-
-import type { Patient } from "@/types/patient";
-import type { Doctor } from "@/types/doctor";
 
 const emptyForm: TreatmentFormData = {
   patient_id: "",
@@ -38,54 +37,56 @@ const emptyForm: TreatmentFormData = {
 };
 
 export default function TreatmentsPage() {
-  const [treatments, setTreatments] =
-    useState<Treatment[]>([]);
+  const [state, setState] =
+    useState<TreatmentsState>({
+      treatments: [],
+      patients: [],
+      doctors: [],
+      loading: true,
+      submitting: false,
+      form: emptyForm,
+      editingTreatment: null,
+      deleteTreatmentId: null,
+      formOpen: false,
+      search: "",
+      toast: {
+        show: false,
+        message: "",
+        type: "success",
+      },
+    });
 
-  const [patients, setPatients] =
-    useState<Patient[]>([]);
-
-  const [doctors, setDoctors] =
-    useState<Doctor[]>([]);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [submitting, setSubmitting] =
-    useState(false);
-
-  const [form, setForm] =
-    useState<TreatmentFormData>(
-      emptyForm
-    );
-
-  const [
+  const {
+    treatments,
+    patients,
+    doctors,
+    loading,
+    submitting,
+    form,
     editingTreatment,
-    setEditingTreatment,
-  ] = useState<Treatment | null>(null);
-
-  const [
     deleteTreatmentId,
-    setDeleteTreatmentId,
-  ] = useState<number | null>(null);
+    formOpen,
+    search,
+    toast,
+  } = state;
 
-  const [formOpen, setFormOpen] =
-    useState(false);
-
-  const [search, setSearch] =
-    useState("");
-
-  const [toast, setToast] = useState({
-    show: false,
-    message: "",
-    type: "success",
-  });
+  const updateState = <
+    K extends keyof TreatmentsState
+  >(
+    field: K,
+    value: TreatmentsState[K]
+  ) => {
+    setState((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
   const showToast = (
     message: string,
-    type: "success" | "error" =
-      "success"
+    type: "success" | "error" = "success"
   ) => {
-    setToast({
+    updateState("toast", {
       show: true,
       message,
       type,
@@ -94,7 +95,10 @@ export default function TreatmentsPage() {
 
   const fetchData = async () => {
     try {
-      setLoading(true);
+      updateState(
+        "loading",
+        true
+      );
 
       const [
         treatmentData,
@@ -106,9 +110,15 @@ export default function TreatmentsPage() {
         getDoctors(),
       ]);
 
-      setTreatments(treatmentData);
-      setPatients(patientData);
-      setDoctors(doctorData);
+      setState((prev) => ({
+        ...prev,
+        treatments:
+          treatmentData,
+        patients:
+          patientData,
+        doctors:
+          doctorData,
+      }));
     } catch (error) {
       showToast(
         error instanceof Error
@@ -117,7 +127,10 @@ export default function TreatmentsPage() {
         "error"
       );
     } finally {
-      setLoading(false);
+      updateState(
+        "loading",
+        false
+      );
     }
   };
 
@@ -132,59 +145,75 @@ export default function TreatmentsPage() {
       | HTMLTextAreaElement
     >
   ) => {
-    setForm((previous) => ({
-      ...previous,
+    const {
+      name,
+      value,
+    } = e.target;
 
-      [e.target.name]:
-        e.target.value,
+    setState((prev) => ({
+      ...prev,
+      form: {
+        ...prev.form,
+        [name]: value,
+      },
     }));
   };
 
   const openCreateModal = () => {
-    setEditingTreatment(null);
-
-    setForm(emptyForm);
-
-    setFormOpen(true);
+    setState((prev) => ({
+      ...prev,
+      editingTreatment: null,
+      form: emptyForm,
+      formOpen: true,
+    }));
   };
 
   const openEditModal = (
     treatment: Treatment
   ) => {
-    setEditingTreatment(treatment);
+    setState((prev) => ({
+      ...prev,
 
-    setForm({
-      patient_id: String(
-        treatment.patient_id
-      ),
+      editingTreatment:
+        treatment,
 
-      doctor_id: String(
-        treatment.doctor_id
-      ),
+      form: {
+        patient_id:
+          String(
+            treatment.patient_id
+          ),
 
-      treatment_date:
-        treatment.treatment_date,
+        doctor_id:
+          String(
+            treatment.doctor_id
+          ),
 
-      diagnosis:
-        treatment.diagnosis,
+        treatment_date:
+          treatment.treatment_date,
 
-      medication:
-        treatment.medication || "",
-    });
+        diagnosis:
+          treatment.diagnosis,
 
-    setFormOpen(true);
+        medication:
+          treatment.medication ||
+          "",
+      },
+
+      formOpen: true,
+    }));
   };
 
   const closeFormModal = () => {
-    setFormOpen(false);
-
-    setEditingTreatment(null);
-
-    setForm(emptyForm);
+    setState((prev) => ({
+      ...prev,
+      formOpen: false,
+      editingTreatment: null,
+      form: emptyForm,
+    }));
   };
 
   const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
+    e: React.SubmitEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
 
@@ -203,7 +232,10 @@ export default function TreatmentsPage() {
     }
 
     try {
-      setSubmitting(true);
+      updateState(
+        "submitting",
+        true
+      );
 
       if (editingTreatment) {
         await updateTreatment(
@@ -215,7 +247,9 @@ export default function TreatmentsPage() {
           "Treatment updated successfully."
         );
       } else {
-        await createTreatment(form);
+        await createTreatment(
+          form
+        );
 
         showToast(
           "Treatment added successfully."
@@ -233,21 +267,34 @@ export default function TreatmentsPage() {
         "error"
       );
     } finally {
-      setSubmitting(false);
+      updateState(
+        "submitting",
+        false
+      );
     }
   };
 
   const handleDelete = async () => {
-    if (!deleteTreatmentId) return;
+    if (
+      deleteTreatmentId === null
+    ) {
+      return;
+    }
 
     try {
-      setSubmitting(true);
+      updateState(
+        "submitting",
+        true
+      );
 
       await deleteTreatment(
         deleteTreatmentId
       );
 
-      setDeleteTreatmentId(null);
+      updateState(
+        "deleteTreatmentId",
+        null
+      );
 
       showToast(
         "Treatment deleted successfully."
@@ -262,7 +309,10 @@ export default function TreatmentsPage() {
         "error"
       );
     } finally {
-      setSubmitting(false);
+      updateState(
+        "submitting",
+        false
+      );
     }
   };
 
@@ -270,30 +320,26 @@ export default function TreatmentsPage() {
     treatments.filter(
       (treatment) => {
         const searchText = `
-          ${
-            treatment.patients
-              ?.first_name || ""
+          ${treatment.patients
+            ?.first_name || ""
           }
 
-          ${
-            treatment.patients
-              ?.last_name || ""
+          ${treatment.patients
+            ?.last_name || ""
           }
 
-          ${
-            treatment.doctors
-              ?.first_name || ""
+          ${treatment.doctors
+            ?.first_name || ""
           }
 
-          ${
-            treatment.doctors
-              ?.last_name || ""
+          ${treatment.doctors
+            ?.last_name || ""
           }
 
           ${treatment.diagnosis}
 
-          ${
-            treatment.medication || ""
+          ${treatment.medication ||
+          ""
           }
         `.toLowerCase();
 
@@ -305,11 +351,9 @@ export default function TreatmentsPage() {
 
   return (
     <div className="space-y-6">
-
       {/* HEADER */}
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
         <div>
           <h1 className="text-3xl font-bold text-slate-900">
             Treatments
@@ -323,35 +367,35 @@ export default function TreatmentsPage() {
         </div>
 
         <Button
-          onClick={openCreateModal}
+          onClick={
+            openCreateModal
+          }
         >
           + Add Treatment
         </Button>
-
       </div>
 
       {/* SEARCH */}
 
       <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-
         <input
           type="text"
           placeholder="Search patient, doctor, diagnosis or medication..."
           value={search}
           onChange={(e) =>
-            setSearch(e.target.value)
+            updateState(
+              "search",
+              e.target.value
+            )
           }
           className="h-11 w-full rounded-lg border border-slate-300 px-4 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
         />
-
       </div>
 
       {/* TABLE */}
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-
         <div className="border-b border-slate-200 px-6 py-5">
-
           <h2 className="text-lg font-semibold text-slate-900">
             Treatment History
           </h2>
@@ -360,7 +404,6 @@ export default function TreatmentsPage() {
             {treatments.length} treatment
             records
           </p>
-
         </div>
 
         {loading ? (
@@ -370,7 +413,6 @@ export default function TreatmentsPage() {
         ) : filteredTreatments.length ===
           0 ? (
           <div className="py-16 text-center">
-
             <p className="font-medium text-slate-900">
               No treatments found
             </p>
@@ -379,17 +421,12 @@ export default function TreatmentsPage() {
               Add a treatment record to
               get started.
             </p>
-
           </div>
         ) : (
           <div className="overflow-x-auto">
-
             <table className="w-full text-left text-sm">
-
               <thead className="bg-slate-50">
-
                 <tr className="text-xs uppercase tracking-wide text-slate-500">
-
                   <th className="px-6 py-4">
                     Patient
                   </th>
@@ -413,13 +450,10 @@ export default function TreatmentsPage() {
                   <th className="px-6 py-4 text-right">
                     Actions
                   </th>
-
                 </tr>
-
               </thead>
 
               <tbody>
-
                 {filteredTreatments.map(
                   (treatment) => (
                     <tr
@@ -428,9 +462,7 @@ export default function TreatmentsPage() {
                       }
                       className="border-t border-slate-100 hover:bg-slate-50/70"
                     >
-
                       <td className="px-6 py-4">
-
                         <p className="font-medium text-slate-900">
                           {
                             treatment.patients
@@ -448,11 +480,9 @@ export default function TreatmentsPage() {
                             treatment.patient_id
                           }
                         </p>
-
                       </td>
 
                       <td className="px-6 py-4">
-
                         <p className="font-medium text-slate-800">
                           Dr.{" "}
                           {
@@ -471,7 +501,6 @@ export default function TreatmentsPage() {
                               ?.specialization
                           }
                         </p>
-
                       </td>
 
                       <td className="px-6 py-4 text-slate-600">
@@ -481,7 +510,9 @@ export default function TreatmentsPage() {
                       </td>
 
                       <td className="max-w-[220px] px-6 py-4 text-slate-600">
-                        {treatment.diagnosis}
+                        {
+                          treatment.diagnosis
+                        }
                       </td>
 
                       <td className="max-w-[220px] px-6 py-4 text-slate-600">
@@ -490,9 +521,7 @@ export default function TreatmentsPage() {
                       </td>
 
                       <td className="px-6 py-4">
-
                         <div className="flex justify-end gap-2">
-
                           <Button
                             variant="secondary"
                             onClick={() =>
@@ -507,29 +536,23 @@ export default function TreatmentsPage() {
                           <Button
                             variant="danger"
                             onClick={() =>
-                              setDeleteTreatmentId(
+                              updateState(
+                                "deleteTreatmentId",
                                 treatment.treatment_id
                               )
                             }
                           >
                             Delete
                           </Button>
-
                         </div>
-
                       </td>
-
                     </tr>
                   )
                 )}
-
               </tbody>
-
             </table>
-
           </div>
         )}
-
       </div>
 
       {/* ADD / EDIT MODAL */}
@@ -541,32 +564,35 @@ export default function TreatmentsPage() {
             ? "Edit Treatment"
             : "Add Treatment"
         }
-        onClose={closeFormModal}
+        onClose={
+          closeFormModal
+        }
       >
-
         <form
-          onSubmit={handleSubmit}
+          onSubmit={
+            handleSubmit
+          }
           className="space-y-5"
         >
-
           <div className="grid gap-4 sm:grid-cols-2">
-
             {/* PATIENT */}
 
             <div>
-
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Patient *
               </label>
 
               <select
                 name="patient_id"
-                value={form.patient_id}
-                onChange={handleChange}
+                value={
+                  form.patient_id
+                }
+                onChange={
+                  handleChange
+                }
                 required
                 className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               >
-
                 <option value="">
                   Select Patient
                 </option>
@@ -590,27 +616,27 @@ export default function TreatmentsPage() {
                     </option>
                   )
                 )}
-
               </select>
-
             </div>
 
             {/* DOCTOR */}
 
             <div>
-
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Doctor *
               </label>
 
               <select
                 name="doctor_id"
-                value={form.doctor_id}
-                onChange={handleChange}
+                value={
+                  form.doctor_id
+                }
+                onChange={
+                  handleChange
+                }
                 required
                 className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               >
-
                 <option value="">
                   Select Doctor
                 </option>
@@ -639,9 +665,7 @@ export default function TreatmentsPage() {
                     </option>
                   )
                 )}
-
               </select>
-
             </div>
 
             <Input
@@ -652,7 +676,9 @@ export default function TreatmentsPage() {
               value={
                 form.treatment_date
               }
-              onChange={handleChange}
+              onChange={
+                handleChange
+              }
               required
             />
 
@@ -660,44 +686,52 @@ export default function TreatmentsPage() {
               label="Medication"
               error=""
               name="medication"
-              value={form.medication}
-              onChange={handleChange}
+              value={
+                form.medication
+              }
+              onChange={
+                handleChange
+              }
               placeholder="e.g. Amlodipine 5mg"
             />
 
             <div className="sm:col-span-2">
-
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Diagnosis *
               </label>
 
               <textarea
                 name="diagnosis"
-                value={form.diagnosis}
-                onChange={handleChange}
+                value={
+                  form.diagnosis
+                }
+                onChange={
+                  handleChange
+                }
                 required
                 rows={4}
                 placeholder="Enter diagnosis..."
                 className="w-full rounded-lg border border-slate-300 px-3 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
-
             </div>
-
           </div>
 
           <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
-
             <Button
               type="button"
               variant="secondary"
-              onClick={closeFormModal}
+              onClick={
+                closeFormModal
+              }
             >
               Cancel
             </Button>
 
             <Button
               type="submit"
-              disabled={submitting}
+              disabled={
+                submitting
+              }
             >
               {submitting
                 ? "Saving..."
@@ -705,26 +739,31 @@ export default function TreatmentsPage() {
                   ? "Update Treatment"
                   : "Add Treatment"}
             </Button>
-
           </div>
-
         </form>
-
       </Modal>
 
       {/* DELETE */}
 
       <ConfirmModal
         open={
-          deleteTreatmentId !== null
+          deleteTreatmentId !==
+          null
         }
         title="Delete Treatment"
         message="Are you sure you want to delete this treatment record? This action cannot be undone."
         confirmText="Delete Treatment"
-        loading={submitting}
-        onConfirm={handleDelete}
+        loading={
+          submitting
+        }
+        onConfirm={
+          handleDelete
+        }
         onCancel={() =>
-          setDeleteTreatmentId(null)
+          updateState(
+            "deleteTreatmentId",
+            null
+          )
         }
       />
 
@@ -732,17 +771,25 @@ export default function TreatmentsPage() {
 
       {toast.show && (
         <Toast
-          message={toast.message}
-          type={toast.type}
+          message={
+            toast.message
+          }
+          type={
+            toast.type
+          }
           onClose={() =>
-            setToast((previous) => ({
-              ...previous,
-              show: false,
-            }))
+            setState(
+              (prev) => ({
+                ...prev,
+                toast: {
+                  ...prev.toast,
+                  show: false,
+                },
+              })
+            )
           }
         />
       )}
-
     </div>
   );
 }
