@@ -17,15 +17,19 @@ const authorizeRoles =
 
 const {
   getUsers,
+  getUserById,
+  createUser,
+  updateUser,
   updateUserRole,
+  deleteUser,
 } = require(
   "../controllers/adminUserController"
 );
 
-// Every admin user API requires login
+// Every route requires authentication
 router.use(requireAuth);
 
-// Every admin user API requires admin role
+// Every route requires admin role
 router.use(
   authorizeRoles("admin")
 );
@@ -36,10 +40,35 @@ router.get(
   getUsers
 );
 
+// GET /api/admin/users/:id
+router.get(
+  "/:id",
+  getUserById
+);
+
+// POST /api/admin/users
+router.post(
+  "/",
+  createUser
+);
+
 // PATCH /api/admin/users/:id/role
+// Keep this BEFORE /:id for clarity.
 router.patch(
   "/:id/role",
   updateUserRole
+);
+
+// PATCH /api/admin/users/:id
+router.patch(
+  "/:id",
+  updateUser
+);
+
+// DELETE /api/admin/users/:id
+router.delete(
+  "/:id",
+  deleteUser
 );
 
 module.exports = router;

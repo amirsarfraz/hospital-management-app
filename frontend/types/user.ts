@@ -29,9 +29,51 @@ export interface UsersResponse {
   users: User[];
 }
 
+export interface UserResponse {
+  user: User;
+}
+
+export interface CreateUserResponse {
+  message: string;
+  user: User;
+}
+
+export interface UpdateUserResponse {
+  message: string;
+  user: User;
+}
+
 export interface UpdateRoleResponse {
   message: string;
   user: User;
+}
+
+export interface DeleteUserResponse {
+  message: string;
+}
+
+export interface CreateUserPayload {
+  first_name: string;
+  last_name: string;
+  email: string;
+  password: string;
+  role: UserRole;
+}
+
+export interface UpdateUserPayload {
+  first_name: string;
+  last_name: string;
+  email: string;
+  role: UserRole;
+  password?: string;
+}
+
+export interface AdminUserForm {
+  first_name: string;
+  last_name: string;
+  email: string;
+  password: string;
+  role: UserRole;
 }
 
 export type Profile = {
@@ -45,6 +87,7 @@ export type CurrentUserState = {
   profile: Profile | null;
   loading: boolean;
 };
+
 export type RegisterState = {
   fullName: string;
   email: string;
@@ -54,11 +97,24 @@ export type RegisterState = {
   success: string;
   loading: boolean;
 };
+
 export type AdminUsersState = {
   users: User[];
+
   loading: boolean;
+  submitting: boolean;
+  deleteLoading: boolean;
+
   error: string;
+
   search: string;
   roleFilter: UserRole | "";
+
   updatingId: string | null;
+
+  modalOpen: boolean;
+  editingUser: User | null;
+  deleteUser: User | null;
+
+  form: AdminUserForm;
 };
