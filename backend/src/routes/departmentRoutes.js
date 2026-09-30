@@ -1,5 +1,12 @@
 const express = require("express");
 const { supabase } = require("../config/supabase");
+const {
+  requireAuth,
+} = require("../middleware/authMiddleware");
+
+const authorizeRoles = require(
+  "../middleware/authorizeRoles"
+);
 
 const router = express.Router();
 
@@ -143,7 +150,7 @@ router.get("/:id", async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-router.post("/", async (req, res) => {
+router.post("/", authorizeRoles("admin", "manager"), async (req, res) => {
   try {
     const {
       name,
@@ -234,7 +241,7 @@ router.post("/", async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-router.put("/:id", async (req, res) => {
+router.put("/:id",authorizeRoles("admin", "manager"), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -315,7 +322,7 @@ router.put("/:id", async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-router.delete("/:id", async (req, res) => {
+router.delete("/:id",authorizeRoles("admin", "manager"), async (req, res) => {
   try {
     const { id } = req.params;
 

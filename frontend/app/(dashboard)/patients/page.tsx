@@ -20,6 +20,10 @@ import type {
   PatientsState,
 } from "@/types/patient";
 
+import type {
+  UserRole,
+} from "@/types/user";
+
 const emptyForm: PatientFormData = {
   first_name: "",
   last_name: "",
@@ -30,6 +34,7 @@ const emptyForm: PatientFormData = {
 };
 
 export default function PatientsPage() {
+  const [role, setRole] = useState<UserRole | null>(null);
   const [state, setState] =
     useState<PatientsState>({
       patients: [],
@@ -46,6 +51,18 @@ export default function PatientsPage() {
         type: "success",
       },
     });
+  const canManage =
+    role === "admin" ||
+    role === "manager";
+
+  useEffect(() => {
+    const storedRole =
+      localStorage.getItem(
+        "role"
+      ) as UserRole | null;
+
+    setRole(storedRole);
+  }, []);
 
   const {
     patients,
@@ -320,13 +337,14 @@ export default function PatientsPage() {
           </p>
         </div>
 
-        <Button
-          onClick={
-            openCreateModal
-          }
-        >
-          + Add Patient
-        </Button>
+        {canManage && (
+          <button
+            onClick={openCreateModal}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-white"
+          >
+            + Add Patient
+          </button>
+        )}
       </div>
 
       {/* Search */}
@@ -401,9 +419,11 @@ export default function PatientsPage() {
                     Address
                   </th>
 
-                  <th className="px-6 py-4 text-right">
-                    Actions
-                  </th>
+                  {canManage && (
+                    <th className="px-6 py-4 text-right">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
 
@@ -469,32 +489,37 @@ export default function PatientsPage() {
                           "—"}
                       </td>
 
-                      <td className="px-6 py-4">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="secondary"
-                            onClick={() =>
-                              openEditModal(
-                                patient
-                              )
-                            }
-                          >
-                            Edit
-                          </Button>
-
-                          <Button
-                            variant="danger"
-                            onClick={() =>
-                              updateState(
-                                "deletePatientId",
-                                patient.patient_id
-                              )
-                            }
-                          >
-                            Delete
-                          </Button>
-                        </div>
+                      <td className="max-w-[250px] truncate px-6 py-4 text-slate-600">
+                        {patient.address || "—"}
                       </td>
+
+                      {canManage && (
+                        <td className="px-6 py-4">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="secondary"
+                              onClick={() =>
+                                openEditModal(patient)
+                              }
+                            >
+                              Edit
+                            </Button>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateState(
+                                  "deletePatientId",
+                                  patient.patient_id
+                                )
+                              }
+                              className="rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   )
                 )}

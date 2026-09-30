@@ -1,7 +1,15 @@
 const express = require("express");
 const { supabase } = require("../config/supabase");
+const {
+  requireAuth,
+} = require("../middleware/authMiddleware");
+
+const authorizeRoles = require(
+  "../middleware/authorizeRoles"
+);
 
 const router = express.Router();
+router.use(requireAuth);
 
 /**
  * @swagger
@@ -157,63 +165,67 @@ router.get("/:id", async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-router.post("/", async (req, res) => {
-  try {
-    const {
-      first_name,
-      last_name,
-      date_of_birth,
-      gender,
-      address,
-      phone_number,
-    } = req.body;
+router.post("/",authorizeRoles("admin", "manager"), async (req, res) => {
+    try {
+      const {
+        first_name,
+        last_name,
+        date_of_birth,
+        gender,
+        address,
+        phone_number,
+      } = req.body;
 
-    if (
-      !first_name ||
-      !last_name ||
-      !date_of_birth ||
-      !gender ||
-      !phone_number
-    ) {
-      return res.status(400).json({
-        message:
-          "First name, last name, date of birth, gender and phone number are required",
+      if (
+        !first_name ||
+        !last_name ||
+        !date_of_birth ||
+        !gender ||
+        !phone_number
+      ) {
+        return res.status(400).json({
+          message:
+            "First name, last name, date of birth, gender and phone number are required",
+        });
+      }
+
+      const { data, error } = await supabase
+        .from("patients")
+        .insert([
+          {
+            first_name: first_name.trim(),
+            last_name: last_name.trim(),
+            date_of_birth,
+            gender,
+            address: address?.trim() || null,
+            phone_number: phone_number.trim(),
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) {
+        return res.status(500).json({
+          message: error.message,
+        });
+      }
+
+      return res.status(201).json({
+        message: "Patient created successfully",
+        patient: data,
       });
-    }
+    } catch (error) {
+      console.error(
+        "Create patient error:",
+        error
+      );
 
-    const { data, error } = await supabase
-      .from("patients")
-      .insert([
-        {
-          first_name: first_name.trim(),
-          last_name: last_name.trim(),
-          date_of_birth,
-          gender,
-          address: address?.trim() || null,
-          phone_number: phone_number.trim(),
-        },
-      ])
-      .select()
-      .single();
-
-    if (error) {
       return res.status(500).json({
-        message: error.message,
+        message: "Internal server error",
       });
     }
-
-    res.status(201).json({
-      message: "Patient created successfully",
-      patient: data,
-    });
-  } catch (error) {
-    console.error("Create patient error:", error);
-
-    res.status(500).json({
-      message: "Internal server error",
-    });
   }
-});
+);
 
 /**
  * @swagger
@@ -277,7 +289,7 @@ router.post("/", async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-router.put("/:id", async (req, res) => {
+router.put("/:id", authorizeRoles("admin", "manager"), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -367,7 +379,7 @@ router.put("/:id", async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authorizeRoles("admin", "manager"), async (req, res) => {
   try {
     const { id } = req.params;
 

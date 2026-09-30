@@ -1,40 +1,20 @@
-function authorizeRoles(
-  ...allowedRoles
-) {
-  return (
-    req,
-    res,
-    next
-  ) => {
+const authorizeRoles = (...allowedRoles) => {
+  return (req, res, next) => {
     if (!req.user) {
-      return res
-        .status(401)
-        .json({
-          message:
-            "User is not authenticated",
-        });
+      return res.status(401).json({
+        message: "Authentication required",
+      });
     }
 
-    const userRole =
-      req.user.role;
-
-    if (
-      !userRole ||
-      !allowedRoles.includes(
-        userRole
-      )
-    ) {
-      return res
-        .status(403)
-        .json({
-          message:
-            "You do not have permission to access this resource",
-        });
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({
+        message:
+          "You do not have permission to perform this action",
+      });
     }
 
     next();
   };
-}
+};
 
-module.exports =
-  authorizeRoles;
+module.exports = authorizeRoles;
