@@ -18,7 +18,6 @@ const authRoutes = require("./routes/authRoutes");
 const nurseRoomRoutes = require("./routes/nurseRoomRoutes");
 const patientRoomRoutes = require("./routes/patientRoomRoutes");
 
-
 const app = express();
 
 // ==============================
@@ -53,15 +52,42 @@ app.get("/", (req, res) => {
 // ==============================
 // SWAGGER
 // ==============================
-app.use(
-  "/api-docs",
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerSpec, {
+
+const swaggerHtml = swaggerUi.generateHTML(
+  swaggerSpec,
+  {
+    customSiteTitle: "City Care Hospital API",
+
+    customCssUrl:
+      "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.14/swagger-ui.min.css",
+
+    customJs: [
+      "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.14/swagger-ui-bundle.min.js",
+      "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.14/swagger-ui-standalone-preset.min.js",
+    ],
+
     swaggerOptions: {
       defaultModelsExpandDepth: -1,
     },
-  })
+  }
 );
+
+app.get(
+  ["/api-docs", "/api-docs/"],
+  (req, res) => {
+    res
+      .status(200)
+      .type("html")
+      .send(swaggerHtml);
+  }
+);
+
+// Swagger JSON
+app.get("/api-docs.json", (req, res) => {
+  res
+    .status(200)
+    .json(swaggerSpec);
+});
 
 // ==============================
 // API ROUTES
@@ -75,7 +101,7 @@ app.use("/api/treatments", treatmentRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/bills", billRoutes);
 app.use("/api/auth", authRoutes);
-app.use("/api/admin/users",adminUserRoutes);
+app.use("/api/admin/users", adminUserRoutes);
 app.use("/api/nurse-rooms", nurseRoomRoutes);
 app.use("/api/patient-rooms", patientRoomRoutes);
 
