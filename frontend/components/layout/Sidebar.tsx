@@ -88,10 +88,9 @@ export default function Sidebar({
           transition-transform duration-300
           ease-in-out
 
-          ${
-            open
-              ? "translate-x-0"
-              : "-translate-x-full"
+          ${open
+            ? "translate-x-0"
+            : "-translate-x-full"
           }
 
           lg:translate-x-0
@@ -198,6 +197,25 @@ export default function Sidebar({
             >
               Rooms
             </Link>
+            {(role === "admin" || role === "manager") && (
+              <>
+                <Link
+                  href="/nurse-rooms"
+                  onClick={handleLinkClick}
+                  className={linkClass("/nurse-rooms")}
+                >
+                  Nurse Room Assignments
+                </Link>
+
+                <Link
+                  href="/patient-rooms"
+                  onClick={handleLinkClick}
+                  className={linkClass("/patient-rooms")}
+                >
+                  Patient Room Assignments
+                </Link>
+              </>
+            )}
 
             <Link
               href="/billing"
