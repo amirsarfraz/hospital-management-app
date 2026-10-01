@@ -27,3 +27,9 @@ export type DepartmentsState = {
   toast: DepartmentToast;
   form: DepartmentFormData;
 };
+export interface DepartmentTableProps {
+  departments: Department[];
+  canManage: boolean;
+  onEdit: (department: Department) => void;
+  onDelete: (department: Department) => void;
+}

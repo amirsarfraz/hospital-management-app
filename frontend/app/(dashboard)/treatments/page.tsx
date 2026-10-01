@@ -6,7 +6,7 @@ import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import Toast from "@/components/ui/Toast";
-
+import type { UserRole } from "@/types/user";
 import {
   getTreatments,
   createTreatment,
@@ -37,6 +37,18 @@ const emptyForm: TreatmentFormData = {
 };
 
 export default function TreatmentsPage() {
+  const [role, setRole] = useState<UserRole | null>(null);
+
+  const canManage =
+    role === "admin" ||
+    role === "manager";
+
+  useEffect(() => {
+    const storedRole =
+      localStorage.getItem("role") as UserRole | null;
+
+    setRole(storedRole);
+  }, []);
   const [state, setState] =
     useState<TreatmentsState>({
       treatments: [],
@@ -366,13 +378,11 @@ export default function TreatmentsPage() {
           </p>
         </div>
 
-        <Button
-          onClick={
-            openCreateModal
-          }
-        >
-          + Add Treatment
-        </Button>
+        {canManage && (
+          <Button onClick={openCreateModal}>
+            + Add Treatment
+          </Button>
+        )}
       </div>
 
       {/* SEARCH */}
@@ -447,9 +457,11 @@ export default function TreatmentsPage() {
                     Medication
                   </th>
 
-                  <th className="px-6 py-4 text-right">
-                    Actions
-                  </th>
+                  {canManage && (
+                    <th className="px-6 py-4 text-right">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
 
@@ -520,32 +532,34 @@ export default function TreatmentsPage() {
                           "No medication"}
                       </td>
 
-                      <td className="px-6 py-4">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="secondary"
-                            onClick={() =>
-                              openEditModal(
-                                treatment
-                              )
-                            }
-                          >
-                            Edit
-                          </Button>
+                      {canManage && (
+                        <td className="px-6 py-4">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="secondary"
+                              onClick={() =>
+                                openEditModal(
+                                  treatment
+                                )
+                              }
+                            >
+                              Edit
+                            </Button>
 
-                          <Button
-                            variant="danger"
-                            onClick={() =>
-                              updateState(
-                                "deleteTreatmentId",
-                                treatment.treatment_id
-                              )
-                            }
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      </td>
+                            <Button
+                              variant="danger"
+                              onClick={() =>
+                                updateState(
+                                  "deleteTreatmentId",
+                                  treatment.treatment_id
+                                )
+                              }
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   )
                 )}

@@ -21,6 +21,7 @@ import type {
   Department,
   DepartmentsState,
 } from "@/types/department";
+import type { UserRole } from "@/types/user";
 
 const emptyForm = {
   name: "",
@@ -29,6 +30,7 @@ const emptyForm = {
 };
 
 export default function DepartmentsPage() {
+  const [role, setRole] = useState<UserRole | null>(null);
   const [state, setState] =
     useState<DepartmentsState>({
       departments: [],
@@ -42,6 +44,16 @@ export default function DepartmentsPage() {
       },
       form: emptyForm,
     });
+  const canManage =
+    role === "admin" ||
+    role === "manager";
+
+  useEffect(() => {
+    const storedRole =
+      localStorage.getItem("role") as UserRole | null;
+
+    setRole(storedRole);
+  }, []);
 
   const {
     departments,
@@ -322,25 +334,26 @@ export default function DepartmentsPage() {
             their information.
           </p>
         </div>
-
-        <DepartmentForm
-          form={form}
-          editingId={
-            editingId
-          }
-          loading={loading}
-          onChange={
-            handleChange
-          }
-          onSubmit={
-            handleSubmit
-          }
-          onCancel={
-            resetForm
-          }
-        />
-
+        {canManage && (
+          <DepartmentForm
+            form={form}
+            editingId={
+              editingId
+            }
+            loading={loading}
+            onChange={
+              handleChange
+            }
+            onSubmit={
+              handleSubmit
+            }
+            onCancel={
+              resetForm
+            }
+          />
+        )}
         <DepartmentTable
+          canManage={canManage}
           departments={
             departments
           }

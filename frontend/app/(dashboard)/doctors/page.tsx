@@ -1,6 +1,6 @@
 "use client";
 
-import {useEffect,useState} from "react";
+import { useEffect, useState } from "react";
 
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -18,6 +18,9 @@ import {
 import {
   getDepartments,
 } from "@/services/departmentService";
+import type {
+  UserRole,
+} from "@/types/user";
 
 import type {
   Doctor,
@@ -35,6 +38,18 @@ const emptyForm: DoctorFormData = {
 };
 
 export default function DoctorsPage() {
+  const [role, setRole] = useState<UserRole | null>(null);
+
+  const canManage =
+    role === "admin" ||
+    role === "manager";
+
+  useEffect(() => {
+    const storedRole =
+      localStorage.getItem("role") as UserRole | null;
+
+    setRole(storedRole);
+  }, []);
   const [state, setState] =
     useState<DoctorsState>({
       doctors: [],
@@ -316,13 +331,11 @@ export default function DoctorsPage() {
           </p>
         </div>
 
-        <Button
-          onClick={
-            openCreateModal
-          }
-        >
-          + Add Doctor
-        </Button>
+        {canManage && (
+          <Button onClick={openCreateModal}>
+            + Add Doctor
+          </Button>
+        )}
       </div>
 
       {/* Doctor Table */}
@@ -387,9 +400,11 @@ export default function DoctorsPage() {
                     Phone
                   </th>
 
-                  <th className="px-6 py-4 text-right">
-                    Actions
-                  </th>
+                  {canManage && (
+                    <th className="px-6 py-4 text-right">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
 
@@ -444,7 +459,7 @@ export default function DoctorsPage() {
                       <td className="px-6 py-4 text-slate-600">
                         {doctor.years_experience}{" "}
                         {doctor.years_experience ===
-                        1
+                          1
                           ? "year"
                           : "years"}
                       </td>
@@ -454,32 +469,30 @@ export default function DoctorsPage() {
                           "—"}
                       </td>
 
-                      <td className="px-6 py-4">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="secondary"
-                            onClick={() =>
-                              openEditModal(
-                                doctor
-                              )
-                            }
-                          >
-                            Edit
-                          </Button>
+                      {canManage && (
+                        <td className="px-6 py-4">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="secondary"
+                              onClick={() => openEditModal(doctor)}
+                            >
+                              Edit
+                            </Button>
 
-                          <Button
-                            variant="danger"
-                            onClick={() =>
-                              updateState(
-                                "deleteDoctorId",
-                                doctor.doctor_id
-                              )
-                            }
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      </td>
+                            <Button
+                              variant="danger"
+                              onClick={() =>
+                                updateState(
+                                  "deleteDoctorId",
+                                  doctor.doctor_id
+                                )
+                              }
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   )
                 )}

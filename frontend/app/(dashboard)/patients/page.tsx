@@ -489,10 +489,6 @@ export default function PatientsPage() {
                           "—"}
                       </td>
 
-                      <td className="max-w-[250px] truncate px-6 py-4 text-slate-600">
-                        {patient.address || "—"}
-                      </td>
-
                       {canManage && (
                         <td className="px-6 py-4">
                           <div className="flex justify-end gap-2">
