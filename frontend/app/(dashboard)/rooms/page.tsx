@@ -6,7 +6,7 @@ import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import Toast from "@/components/ui/Toast";
-
+import type { UserRole } from "@/types/user";
 import {
   getRooms,
   createRoom,
@@ -29,6 +29,18 @@ const emptyForm: RoomFormData = {
 };
 
 export default function RoomsPage() {
+  const [role, setRole] = useState<UserRole | null>(null);
+
+  const canManage =
+    role === "admin" ||
+    role === "manager";
+
+  useEffect(() => {
+    const storedRole =
+      localStorage.getItem("role") as UserRole | null;
+
+    setRole(storedRole);
+  }, []);
   const [state, setState] =
     useState<RoomsState>({
       rooms: [],
@@ -362,13 +374,11 @@ export default function RoomsPage() {
           </p>
         </div>
 
-        <Button
-          onClick={
-            openCreateModal
-          }
-        >
-          + Add Room
-        </Button>
+        {canManage && (
+          <Button onClick={openCreateModal}>
+            + Add Room
+          </Button>
+        )}
       </div>
 
       {/* Statistics */}
@@ -506,9 +516,11 @@ export default function RoomsPage() {
                     Status
                   </th>
 
-                  <th className="px-6 py-4 text-right">
-                    Actions
-                  </th>
+                  {canManage && (
+                    <th className="px-6 py-4 text-right">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
 
@@ -558,32 +570,34 @@ export default function RoomsPage() {
                         </span>
                       </td>
 
-                      <td className="px-6 py-4">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="secondary"
-                            onClick={() =>
-                              openEditModal(
-                                room
-                              )
-                            }
-                          >
-                            Edit
-                          </Button>
+                      {canManage && (
+                        <td className="px-6 py-4">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="secondary"
+                              onClick={() =>
+                                openEditModal(
+                                  room
+                                )
+                              }
+                            >
+                              Edit
+                            </Button>
 
-                          <Button
-                            variant="danger"
-                            onClick={() =>
-                              updateState(
-                                "deleteRoomNumber",
-                                room.room_number
-                              )
-                            }
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      </td>
+                            <Button
+                              variant="danger"
+                              onClick={() =>
+                                updateState(
+                                  "deleteRoomNumber",
+                                  room.room_number
+                                )
+                              }
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   )
                 )}

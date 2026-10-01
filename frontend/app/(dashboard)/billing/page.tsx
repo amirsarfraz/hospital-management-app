@@ -4,7 +4,7 @@ import {
   useEffect,
   useState,
 } from "react";
-
+import type { UserRole } from "@/types/user";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
@@ -36,6 +36,18 @@ const emptyForm: BillFormData = {
 };
 
 export default function BillingPage() {
+  const [role, setRole] = useState<UserRole | null>(null);
+
+  const canManage =
+    role === "admin" ||
+    role === "manager";
+
+  useEffect(() => {
+    const storedRole =
+      localStorage.getItem("role") as UserRole | null;
+
+    setRole(storedRole);
+  }, []);
   const [state, setState] =
     useState<BillingState>({
       bills: [],
@@ -406,13 +418,11 @@ export default function BillingPage() {
           </p>
         </div>
 
-        <Button
-          onClick={
-            openCreateModal
-          }
-        >
-          + Create Bill
-        </Button>
+        {canManage && (
+          <Button onClick={openCreateModal}>
+            + Create Bill
+          </Button>
+        )}
       </div>
 
       {/* Stats */}
@@ -553,9 +563,11 @@ export default function BillingPage() {
                     Status
                   </th>
 
-                  <th className="px-6 py-4 text-right">
-                    Actions
-                  </th>
+                  {canManage && (
+                    <th className="px-6 py-4 text-right">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
 
@@ -613,9 +625,9 @@ export default function BillingPage() {
                       <td className="px-6 py-4">
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-medium ${bill.payment_status ===
-                              "paid"
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "bg-amber-50 text-amber-700"
+                            "paid"
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "bg-amber-50 text-amber-700"
                             }`}
                         >
                           {
@@ -624,32 +636,34 @@ export default function BillingPage() {
                         </span>
                       </td>
 
-                      <td className="px-6 py-4">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="secondary"
-                            onClick={() =>
-                              openEditModal(
-                                bill
-                              )
-                            }
-                          >
-                            Edit
-                          </Button>
+                      {canManage && (
+                        <td className="px-6 py-4">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="secondary"
+                              onClick={() =>
+                                openEditModal(
+                                  bill
+                                )
+                              }
+                            >
+                              Edit
+                            </Button>
 
-                          <Button
-                            variant="danger"
-                            onClick={() =>
-                              updateState(
-                                "deleteBillId",
-                                bill.bill_number
-                              )
-                            }
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      </td>
+                            <Button
+                              variant="danger"
+                              onClick={() =>
+                                updateState(
+                                  "deleteBillId",
+                                  bill.bill_number
+                                )
+                              }
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   )
                 )}

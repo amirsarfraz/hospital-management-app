@@ -4,7 +4,7 @@ import {
   useEffect,
   useState,
 } from "react";
-
+import type { UserRole } from "@/types/user";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
@@ -37,6 +37,18 @@ const emptyForm: NurseFormData = {
 };
 
 export default function NursesPage() {
+  const [role, setRole] = useState<UserRole | null>(null);
+
+  const canManage =
+    role === "admin" ||
+    role === "manager";
+
+  useEffect(() => {
+    const storedRole =
+      localStorage.getItem("role") as UserRole | null;
+
+    setRole(storedRole);
+  }, []);
   const [state, setState] =
     useState<NursesState>({
       nurses: [],
@@ -313,13 +325,11 @@ export default function NursesPage() {
           </p>
         </div>
 
-        <Button
-          onClick={
-            openCreateModal
-          }
-        >
-          + Add Nurse
-        </Button>
+        {canManage && (
+          <Button onClick={openCreateModal}>
+            + Add Nurse
+          </Button>
+        )}
       </div>
 
       {/* Nurse List */}
@@ -380,9 +390,11 @@ export default function NursesPage() {
                     Phone
                   </th>
 
-                  <th className="px-6 py-4 text-right">
-                    Actions
-                  </th>
+                  {canManage && (
+                    <th className="px-6 py-4 text-right">
+                      Actions
+                    </th>
+                  )}
                 </tr>
               </thead>
 
@@ -442,32 +454,34 @@ export default function NursesPage() {
                           "—"}
                       </td>
 
-                      <td className="px-6 py-4">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="secondary"
-                            onClick={() =>
-                              openEditModal(
-                                nurse
-                              )
-                            }
-                          >
-                            Edit
-                          </Button>
+                      {canManage && (
+                        <td className="px-6 py-4">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="secondary"
+                              onClick={() =>
+                                openEditModal(
+                                  nurse
+                                )
+                              }
+                            >
+                              Edit
+                            </Button>
 
-                          <Button
-                            variant="danger"
-                            onClick={() =>
-                              updateState(
-                                "deleteNurseId",
-                                nurse.nurse_id
-                              )
-                            }
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      </td>
+                            <Button
+                              variant="danger"
+                              onClick={() =>
+                                updateState(
+                                  "deleteNurseId",
+                                  nurse.nurse_id
+                                )
+                              }
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   )
                 )}
