@@ -82,6 +82,10 @@ app.get("/api/health", (req, res) => {
 // SWAGGER JSON
 // ==============================
 
+// ==============================
+// SWAGGER JSON
+// ==============================
+
 app.get("/api-docs.json", (req, res) => {
   res.setHeader("Content-Type", "application/json");
 
@@ -90,18 +94,93 @@ app.get("/api-docs.json", (req, res) => {
 
 // ==============================
 // SWAGGER UI
+// Works locally + Vercel
 // ==============================
 
-app.use(
-  "/api-docs",
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerSpec, {
-    customSiteTitle: "City Care Hospital API",
-    swaggerOptions: {
-      defaultModelsExpandDepth: -1,
-      persistAuthorization: true,
-    },
-  })
+app.get(
+  ["/api-docs", "/api-docs/"],
+  (req, res) => {
+    res
+      .status(200)
+      .type("html")
+      .send(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>City Care Hospital API</title>
+
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css"
+  />
+
+  <style>
+    html {
+      box-sizing: border-box;
+      overflow-y: scroll;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: inherit;
+    }
+
+    body {
+      margin: 0;
+      background: #fafafa;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="swagger-ui"></div>
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"
+  ></script>
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js"
+  ></script>
+
+  <script>
+    window.onload = function () {
+      window.ui = SwaggerUIBundle({
+        url: "/api-docs.json",
+
+        dom_id: "#swagger-ui",
+
+        deepLinking: true,
+
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+
+        plugins: [
+          SwaggerUIBundle.plugins.DownloadUrl
+        ],
+
+        layout: "StandaloneLayout",
+
+        persistAuthorization: true,
+
+        defaultModelsExpandDepth: -1
+      });
+    };
+  </script>
+</body>
+</html>
+      `);
+  }
 );
 
 // ==============================
