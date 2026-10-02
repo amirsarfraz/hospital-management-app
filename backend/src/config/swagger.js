@@ -1,4 +1,9 @@
 const swaggerJsdoc = require("swagger-jsdoc");
+const path = require("path");
+
+const productionUrl =
+    process.env.BACKEND_URL ||
+    "https://hospital-management-app-opal.vercel.app";
 
 const options = {
     definition: {
@@ -13,12 +18,24 @@ const options = {
 
         servers: [
             {
+                url: productionUrl,
+                description: "Production server",
+            },
+            {
                 url: "http://localhost:5000",
                 description: "Local development server",
             },
         ],
 
         components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: "http",
+                    scheme: "bearer",
+                    bearerFormat: "JWT",
+                },
+            },
+
             schemas: {
                 Department: {
                     type: "object",
@@ -37,7 +54,12 @@ const options = {
                         },
                         contact_phone: {
                             type: "string",
+                            nullable: true,
                             example: "03001234567",
+                        },
+                        created_at: {
+                            type: "string",
+                            format: "date-time",
                         },
                     },
                 },
@@ -51,7 +73,7 @@ const options = {
                         },
                         first_name: {
                             type: "string",
-                            example: "Ahmed",
+                            example: "Ali",
                         },
                         last_name: {
                             type: "string",
@@ -59,19 +81,59 @@ const options = {
                         },
                         specialization: {
                             type: "string",
-                            example: "Cardiologist",
+                            example: "Cardiology",
                         },
-                        years_experience: {
-                            type: "integer",
-                            example: 8,
-                        },
-                        contact_number: {
+                        phone_number: {
                             type: "string",
-                            example: "03001111111",
+                            example: "03001234567",
+                        },
+                        email: {
+                            type: "string",
+                            format: "email",
+                            example: "doctor@example.com",
                         },
                         department_id: {
                             type: "integer",
                             example: 1,
+                        },
+                        created_at: {
+                            type: "string",
+                            format: "date-time",
+                        },
+                    },
+                },
+
+                Nurse: {
+                    type: "object",
+                    properties: {
+                        nurse_id: {
+                            type: "integer",
+                            example: 1,
+                        },
+                        first_name: {
+                            type: "string",
+                            example: "Sara",
+                        },
+                        last_name: {
+                            type: "string",
+                            example: "Khan",
+                        },
+                        phone_number: {
+                            type: "string",
+                            example: "03001234567",
+                        },
+                        email: {
+                            type: "string",
+                            format: "email",
+                            example: "nurse@example.com",
+                        },
+                        department_id: {
+                            type: "integer",
+                            example: 1,
+                        },
+                        created_at: {
+                            type: "string",
+                            format: "date-time",
                         },
                     },
                 },
@@ -98,156 +160,25 @@ const options = {
                         },
                         gender: {
                             type: "string",
+                            enum: [
+                                "Male",
+                                "Female",
+                                "Other",
+                            ],
                             example: "Male",
                         },
                         address: {
                             type: "string",
-                            example: "Lahore",
+                            nullable: true,
+                            example: "Lahore, Pakistan",
                         },
                         phone_number: {
                             type: "string",
                             example: "03001234567",
                         },
-                    },
-                },
-
-                Nurse: {
-                    type: "object",
-                    properties: {
-                        nurse_id: {
-                            type: "integer",
-                            example: 1,
-                        },
-                        first_name: {
-                            type: "string",
-                            example: "Fatima",
-                        },
-                        last_name: {
-                            type: "string",
-                            example: "Ali",
-                        },
-                        shift_timing: {
-                            type: "string",
-                            example: "Morning",
-                        },
-                        contact_number: {
-                            type: "string",
-                            example: "03009998888",
-                        },
-                        department_id: {
-                            type: "integer",
-                            example: 1,
-                        },
-                    },
-                },
-
-                Room: {
-                    type: "object",
-
-                    properties: {
-                        room_number: {
-                            type: "integer",
-                            example: 101,
-                        },
-
-                        room_type: {
-                            type: "string",
-                            enum: [
-                                "General",
-                                "Private",
-                                "ICU",
-                            ],
-                            example: "Private",
-                        },
-
-                        daily_charge_rate: {
-                            type: "number",
-                            format: "float",
-                            example: 5000,
-                        },
-
-                        status: {
-                            type: "string",
-                            enum: [
-                                "available",
-                                "occupied",
-                                "maintenance",
-                            ],
-                            example: "available",
-                        },
-
                         created_at: {
                             type: "string",
                             format: "date-time",
-                            example:
-                                "2026-09-10T12:30:00Z",
-                        },
-                    },
-                },
-
-                Bill: {
-                    type: "object",
-
-                    properties: {
-                        bill_number: {
-                            type: "integer",
-                            example: 1,
-                        },
-
-                        patient_id: {
-                            type: "integer",
-                            example: 1,
-                        },
-
-                        total_amount: {
-                            type: "number",
-                            format: "float",
-                            example: 8500,
-                        },
-
-                        payment_status: {
-                            type: "string",
-                            enum: ["paid", "unpaid"],
-                            example: "unpaid",
-                        },
-
-                        date_issued: {
-                            type: "string",
-                            format: "date",
-                            example: "2026-09-10",
-                        },
-
-                        created_at: {
-                            type: "string",
-                            format: "date-time",
-                            example: "2026-09-10T12:30:00Z",
-                        },
-
-                        patients: {
-                            type: "object",
-                            nullable: true,
-
-                            properties: {
-                                patient_id: {
-                                    type: "integer",
-                                    example: 1,
-                                },
-
-                                first_name: {
-                                    type: "string",
-                                    example: "Ali",
-                                },
-
-                                last_name: {
-                                    type: "string",
-                                    example: "Hassan",
-                                },
-
-                                phone_number: {
-                                    type: "string",
-                                    example: "03001234567",
-                                },
-                            },
                         },
                     },
                 },
@@ -259,103 +190,86 @@ const options = {
                             type: "integer",
                             example: 1,
                         },
-
                         patient_id: {
                             type: "integer",
-                            example: 2,
+                            example: 1,
                         },
-
                         doctor_id: {
                             type: "integer",
                             example: 1,
                         },
-
+                        diagnosis: {
+                            type: "string",
+                            example: "Flu",
+                        },
+                        treatment_details: {
+                            type: "string",
+                            example: "Medication and rest",
+                        },
                         treatment_date: {
                             type: "string",
                             format: "date",
-                            example: "2026-09-10",
                         },
-
-                        diagnosis: {
-                            type: "string",
-                            example: "High blood pressure",
-                        },
-
-                        medication: {
-                            type: "string",
-                            nullable: true,
-                            example: "Amlodipine 5mg once daily",
-                        },
-
                         created_at: {
                             type: "string",
                             format: "date-time",
-                            example: "2026-09-10T12:30:00Z",
                         },
+                    },
+                },
 
-                        patients: {
-                            type: "object",
-                            nullable: true,
-                            properties: {
-                                patient_id: {
-                                    type: "integer",
-                                    example: 2,
-                                },
-                                first_name: {
-                                    type: "string",
-                                    example: "Ali",
-                                },
-                                last_name: {
-                                    type: "string",
-                                    example: "Hassan",
-                                },
-                                phone_number: {
-                                    type: "string",
-                                    example: "03001234567",
-                                },
-                            },
+                Room: {
+                    type: "object",
+                    properties: {
+                        room_id: {
+                            type: "integer",
+                            example: 1,
                         },
+                        room_number: {
+                            type: "string",
+                            example: "101",
+                        },
+                        room_type: {
+                            type: "string",
+                            example: "General",
+                        },
+                        status: {
+                            type: "string",
+                            example: "available",
+                        },
+                        created_at: {
+                            type: "string",
+                            format: "date-time",
+                        },
+                    },
+                },
 
-                        doctors: {
-                            type: "object",
-                            nullable: true,
-                            properties: {
-                                doctor_id: {
-                                    type: "integer",
-                                    example: 1,
-                                },
-                                first_name: {
-                                    type: "string",
-                                    example: "Ahmed",
-                                },
-                                last_name: {
-                                    type: "string",
-                                    example: "Khan",
-                                },
-                                specialization: {
-                                    type: "string",
-                                    example: "Cardiologist",
-                                },
-                                department_id: {
-                                    type: "integer",
-                                    example: 1,
-                                },
-
-                                departments: {
-                                    type: "object",
-                                    nullable: true,
-                                    properties: {
-                                        department_id: {
-                                            type: "integer",
-                                            example: 1,
-                                        },
-                                        name: {
-                                            type: "string",
-                                            example: "Cardiology",
-                                        },
-                                    },
-                                },
-                            },
+                Bill: {
+                    type: "object",
+                    properties: {
+                        bill_id: {
+                            type: "integer",
+                            example: 1,
+                        },
+                        bill_number: {
+                            type: "string",
+                            example: "BILL-001",
+                        },
+                        patient_id: {
+                            type: "integer",
+                            example: 1,
+                        },
+                        total_amount: {
+                            type: "number",
+                            format: "float",
+                            example: 5000,
+                        },
+                        payment_status: {
+                            type: "string",
+                            example: "unpaid",
+                        },
+                        created_at: {
+                            type: "string",
+                            format: "date-time",
                         },
                     },
                 },
@@ -373,9 +287,17 @@ const options = {
         },
     },
 
-    apis: ["./src/routes/*.js"],
+    // swagger.js = src/config/swagger.js
+    // routes     = src/routes/*.js
+    apis: [
+        path.resolve(
+            __dirname,
+            "../routes/*.js"
+        ),
+    ],
 };
 
-const swaggerSpec = swaggerJsdoc(options);
+const swaggerSpec =
+    swaggerJsdoc(options);
 
 module.exports = swaggerSpec;

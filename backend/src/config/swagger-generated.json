@@ -1,0 +1,2313 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "City Care Hospital API",
+    "version": "1.0.0",
+    "description": "API documentation for City Care Hospital Management System"
+  },
+  "servers": [
+    {
+      "url": "https://hospital-management-app-opal.vercel.app",
+      "description": "Production server"
+    },
+    {
+      "url": "http://localhost:5000",
+      "description": "Local development server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Department": {
+        "type": "object",
+        "properties": {
+          "department_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Cardiology"
+          },
+          "location": {
+            "type": "string",
+            "example": "First Floor"
+          },
+          "contact_phone": {
+            "type": "string",
+            "nullable": true,
+            "example": "03001234567"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Doctor": {
+        "type": "object",
+        "properties": {
+          "doctor_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "first_name": {
+            "type": "string",
+            "example": "Ali"
+          },
+          "last_name": {
+            "type": "string",
+            "example": "Khan"
+          },
+          "specialization": {
+            "type": "string",
+            "example": "Cardiology"
+          },
+          "phone_number": {
+            "type": "string",
+            "example": "03001234567"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "doctor@example.com"
+          },
+          "department_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Nurse": {
+        "type": "object",
+        "properties": {
+          "nurse_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "first_name": {
+            "type": "string",
+            "example": "Sara"
+          },
+          "last_name": {
+            "type": "string",
+            "example": "Khan"
+          },
+          "phone_number": {
+            "type": "string",
+            "example": "03001234567"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "nurse@example.com"
+          },
+          "department_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Patient": {
+        "type": "object",
+        "properties": {
+          "patient_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "first_name": {
+            "type": "string",
+            "example": "Ali"
+          },
+          "last_name": {
+            "type": "string",
+            "example": "Hassan"
+          },
+          "date_of_birth": {
+            "type": "string",
+            "format": "date",
+            "example": "1994-05-10"
+          },
+          "gender": {
+            "type": "string",
+            "enum": [
+              "Male",
+              "Female",
+              "Other"
+            ],
+            "example": "Male"
+          },
+          "address": {
+            "type": "string",
+            "nullable": true,
+            "example": "Lahore, Pakistan"
+          },
+          "phone_number": {
+            "type": "string",
+            "example": "03001234567"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Treatment": {
+        "type": "object",
+        "properties": {
+          "treatment_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "patient_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "doctor_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "diagnosis": {
+            "type": "string",
+            "example": "Flu"
+          },
+          "treatment_details": {
+            "type": "string",
+            "example": "Medication and rest"
+          },
+          "treatment_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Room": {
+        "type": "object",
+        "properties": {
+          "room_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "room_number": {
+            "type": "string",
+            "example": "101"
+          },
+          "room_type": {
+            "type": "string",
+            "example": "General"
+          },
+          "status": {
+            "type": "string",
+            "example": "available"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Bill": {
+        "type": "object",
+        "properties": {
+          "bill_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "bill_number": {
+            "type": "string",
+            "example": "BILL-001"
+          },
+          "patient_id": {
+            "type": "integer",
+            "example": 1
+          },
+          "total_amount": {
+            "type": "number",
+            "format": "float",
+            "example": 5000
+          },
+          "payment_status": {
+            "type": "string",
+            "example": "unpaid"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Something went wrong"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/treatments": {
+      "get": {
+        "summary": "Get all treatments",
+        "tags": [
+          "Treatments"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of all treatments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Treatment"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new treatment",
+        "tags": [
+          "Treatments"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "patient_id",
+                  "doctor_id",
+                  "treatment_date",
+                  "diagnosis"
+                ],
+                "properties": {
+                  "patient_id": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "doctor_id": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "treatment_date": {
+                    "type": "string",
+                    "format": "date",
+                    "example": "2026-09-10"
+                  },
+                  "diagnosis": {
+                    "type": "string",
+                    "example": "High blood pressure"
+                  },
+                  "medication": {
+                    "type": "string",
+                    "nullable": true,
+                    "example": "Amlodipine 5mg once daily"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Treatment created successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "404": {
+            "description": "Patient or doctor not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/treatments/{id}": {
+      "get": {
+        "summary": "Get treatment by ID",
+        "tags": [
+          "Treatments"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Treatment ID",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Treatment details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Treatment"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Treatment not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a treatment",
+        "tags": [
+          "Treatments"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "patient_id",
+                  "doctor_id",
+                  "treatment_date",
+                  "diagnosis"
+                ],
+                "properties": {
+                  "patient_id": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "doctor_id": {
+                    "type": "integer",
+                    "example": 2
+                  },
+                  "treatment_date": {
+                    "type": "string",
+                    "format": "date",
+                    "example": "2026-09-10"
+                  },
+                  "diagnosis": {
+                    "type": "string",
+                    "example": "Hypertension"
+                  },
+                  "medication": {
+                    "type": "string",
+                    "nullable": true,
+                    "example": "Amlodipine 10mg"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Treatment updated successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "404": {
+            "description": "Treatment, patient or doctor not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a treatment",
+        "tags": [
+          "Treatments"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Treatment ID",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Treatment deleted successfully"
+          },
+          "404": {
+            "description": "Treatment not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/rooms": {
+      "get": {
+        "summary": "Get all rooms",
+        "tags": [
+          "Rooms"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of all rooms",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Room"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new room",
+        "tags": [
+          "Rooms"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "room_number",
+                  "room_type",
+                  "daily_charge_rate",
+                  "status"
+                ],
+                "properties": {
+                  "room_number": {
+                    "type": "integer",
+                    "example": 104
+                  },
+                  "room_type": {
+                    "type": "string",
+                    "enum": [
+                      "General",
+                      "Private",
+                      "ICU"
+                    ],
+                    "example": "Private"
+                  },
+                  "daily_charge_rate": {
+                    "type": "number",
+                    "example": 5000
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "available",
+                      "occupied",
+                      "maintenance"
+                    ],
+                    "example": "available"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Room created successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "409": {
+            "description": "Room already exists"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/rooms/{roomNumber}": {
+      "get": {
+        "summary": "Get room by room number",
+        "tags": [
+          "Rooms"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "roomNumber",
+            "required": true,
+            "description": "Room number",
+            "schema": {
+              "type": "integer",
+              "example": 101
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Room details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Room"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Room not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a room",
+        "tags": [
+          "Rooms"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "roomNumber",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 101
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "room_type",
+                  "daily_charge_rate",
+                  "status"
+                ],
+                "properties": {
+                  "room_type": {
+                    "type": "string",
+                    "enum": [
+                      "General",
+                      "Private",
+                      "ICU"
+                    ],
+                    "example": "ICU"
+                  },
+                  "daily_charge_rate": {
+                    "type": "number",
+                    "example": 12000
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "available",
+                      "occupied",
+                      "maintenance"
+                    ],
+                    "example": "occupied"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Room updated successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "404": {
+            "description": "Room not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a room",
+        "tags": [
+          "Rooms"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "roomNumber",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 101
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Room deleted successfully"
+          },
+          "404": {
+            "description": "Room not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/patients": {
+      "get": {
+        "summary": "Get all patients",
+        "tags": [
+          "Patients"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of all patients",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Patient"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new patient",
+        "tags": [
+          "Patients"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "first_name",
+                  "last_name",
+                  "date_of_birth",
+                  "gender",
+                  "phone_number"
+                ],
+                "properties": {
+                  "first_name": {
+                    "type": "string",
+                    "example": "Ali"
+                  },
+                  "last_name": {
+                    "type": "string",
+                    "example": "Hassan"
+                  },
+                  "date_of_birth": {
+                    "type": "string",
+                    "format": "date",
+                    "example": "1994-05-10"
+                  },
+                  "gender": {
+                    "type": "string",
+                    "enum": [
+                      "Male",
+                      "Female",
+                      "Other"
+                    ],
+                    "example": "Male"
+                  },
+                  "address": {
+                    "type": "string",
+                    "nullable": true,
+                    "example": "Lahore, Pakistan"
+                  },
+                  "phone_number": {
+                    "type": "string",
+                    "example": "03001234567"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Patient created successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/patients/{id}": {
+      "get": {
+        "summary": "Get patient by ID",
+        "tags": [
+          "Patients"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Patient ID",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Patient details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Patient"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Patient not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a patient",
+        "tags": [
+          "Patients"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Patient ID",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "first_name",
+                  "last_name",
+                  "date_of_birth",
+                  "gender",
+                  "phone_number"
+                ],
+                "properties": {
+                  "first_name": {
+                    "type": "string",
+                    "example": "Ali"
+                  },
+                  "last_name": {
+                    "type": "string",
+                    "example": "Hassan"
+                  },
+                  "date_of_birth": {
+                    "type": "string",
+                    "format": "date",
+                    "example": "1994-05-10"
+                  },
+                  "gender": {
+                    "type": "string",
+                    "enum": [
+                      "Male",
+                      "Female",
+                      "Other"
+                    ],
+                    "example": "Male"
+                  },
+                  "address": {
+                    "type": "string",
+                    "nullable": true,
+                    "example": "Islamabad, Pakistan"
+                  },
+                  "phone_number": {
+                    "type": "string",
+                    "example": "03009999999"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Patient updated successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "404": {
+            "description": "Patient not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a patient",
+        "tags": [
+          "Patients"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Patient ID",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Patient deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Patient deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Patient not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/patient-rooms": {
+      "get": {
+        "summary": "Get all patient room assignments",
+        "tags": [
+          "Patient Rooms"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of patient room assignments"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "post": {
+        "summary": "Assign a patient to a room",
+        "tags": [
+          "Patient Rooms"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "patient_id",
+                  "room_number"
+                ],
+                "properties": {
+                  "patient_id": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "room_number": {
+                    "type": "integer",
+                    "example": 101
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Patient assigned successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Patient or room not found"
+          },
+          "409": {
+            "description": "Patient already assigned or room unavailable"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/patient-rooms/{id}/discharge": {
+      "patch": {
+        "summary": "Discharge a patient from a room",
+        "tags": [
+          "Patient Rooms"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Patient room assignment ID",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Patient discharged successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Active room assignment not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/patient-rooms/{id}": {
+      "delete": {
+        "summary": "Delete a patient room assignment",
+        "tags": [
+          "Patient Rooms"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Patient room assignment ID",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Patient room assignment deleted successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Assignment not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/nurses": {
+      "get": {
+        "summary": "Get all nurses",
+        "tags": [
+          "Nurses"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of all nurses",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Nurse"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new nurse",
+        "tags": [
+          "Nurses"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "first_name",
+                  "last_name",
+                  "shift_timing",
+                  "department_id"
+                ],
+                "properties": {
+                  "first_name": {
+                    "type": "string",
+                    "example": "Fatima"
+                  },
+                  "last_name": {
+                    "type": "string",
+                    "example": "Ali"
+                  },
+                  "shift_timing": {
+                    "type": "string",
+                    "enum": [
+                      "Morning",
+                      "Evening",
+                      "Night"
+                    ],
+                    "example": "Morning"
+                  },
+                  "contact_number": {
+                    "type": "string",
+                    "example": "03001234567"
+                  },
+                  "department_id": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Nurse created successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/nurses/{id}": {
+      "get": {
+        "summary": "Get nurse by ID",
+        "tags": [
+          "Nurses"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Nurse ID",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Nurse details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Nurse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nurse not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a nurse",
+        "tags": [
+          "Nurses"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Nurse ID",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "first_name",
+                  "last_name",
+                  "shift_timing",
+                  "department_id"
+                ],
+                "properties": {
+                  "first_name": {
+                    "type": "string",
+                    "example": "Fatima"
+                  },
+                  "last_name": {
+                    "type": "string",
+                    "example": "Khan"
+                  },
+                  "shift_timing": {
+                    "type": "string",
+                    "enum": [
+                      "Morning",
+                      "Evening",
+                      "Night"
+                    ],
+                    "example": "Night"
+                  },
+                  "contact_number": {
+                    "type": "string",
+                    "example": "03009999999"
+                  },
+                  "department_id": {
+                    "type": "integer",
+                    "example": 2
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Nurse updated successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "404": {
+            "description": "Nurse not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a nurse",
+        "tags": [
+          "Nurses"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Nurse ID",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Nurse deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Nurse deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Nurse not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/nurse-rooms": {
+      "get": {
+        "summary": "Get all nurse room assignments",
+        "tags": [
+          "Nurse Rooms"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of nurse room assignments"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "post": {
+        "summary": "Assign a nurse to a room",
+        "tags": [
+          "Nurse Rooms"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "nurse_id",
+                  "room_number"
+                ],
+                "properties": {
+                  "nurse_id": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "room_number": {
+                    "type": "integer",
+                    "example": 101
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Nurse assigned to room successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Nurse or room not found"
+          },
+          "409": {
+            "description": "Assignment already exists"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/nurse-rooms/{id}": {
+      "delete": {
+        "summary": "Remove a nurse room assignment",
+        "tags": [
+          "Nurse Rooms"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Nurse room assignment ID",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Nurse removed from room successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Nurse room assignment not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/doctors": {
+      "get": {
+        "summary": "Get all doctors",
+        "tags": [
+          "Doctors"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of all doctors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Doctor"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new doctor",
+        "tags": [
+          "Doctors"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "first_name",
+                  "last_name",
+                  "specialization",
+                  "department_id"
+                ],
+                "properties": {
+                  "first_name": {
+                    "type": "string",
+                    "example": "Ahmed"
+                  },
+                  "last_name": {
+                    "type": "string",
+                    "example": "Khan"
+                  },
+                  "specialization": {
+                    "type": "string",
+                    "example": "Cardiologist"
+                  },
+                  "years_experience": {
+                    "type": "integer",
+                    "example": 8
+                  },
+                  "contact_number": {
+                    "type": "string",
+                    "example": "03001111111"
+                  },
+                  "department_id": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Doctor created successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/doctors/{id}": {
+      "get": {
+        "summary": "Get doctor by ID",
+        "tags": [
+          "Doctors"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Doctor ID",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Doctor details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Doctor"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Doctor not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a doctor",
+        "tags": [
+          "Doctors"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Doctor ID",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "first_name",
+                  "last_name",
+                  "specialization",
+                  "department_id"
+                ],
+                "properties": {
+                  "first_name": {
+                    "type": "string",
+                    "example": "Ahmed"
+                  },
+                  "last_name": {
+                    "type": "string",
+                    "example": "Khan"
+                  },
+                  "specialization": {
+                    "type": "string",
+                    "example": "Senior Cardiologist"
+                  },
+                  "years_experience": {
+                    "type": "integer",
+                    "example": 10
+                  },
+                  "contact_number": {
+                    "type": "string",
+                    "example": "03001111111"
+                  },
+                  "department_id": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Doctor updated successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "404": {
+            "description": "Doctor not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a doctor",
+        "tags": [
+          "Doctors"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Doctor ID",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Doctor deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Doctor deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Doctor not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/departments": {
+      "get": {
+        "summary": "Get all departments",
+        "tags": [
+          "Departments"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of all departments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Department"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new department",
+        "tags": [
+          "Departments"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "location"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "Cardiology"
+                  },
+                  "location": {
+                    "type": "string",
+                    "example": "First Floor"
+                  },
+                  "contact_phone": {
+                    "type": "string",
+                    "example": "03001234567"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Department created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Department"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/departments/{id}": {
+      "get": {
+        "summary": "Get department by ID",
+        "tags": [
+          "Departments"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Department ID",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Department details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Department"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Department not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a department",
+        "tags": [
+          "Departments"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Department ID",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "location"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "Cardiology"
+                  },
+                  "location": {
+                    "type": "string",
+                    "example": "Second Floor"
+                  },
+                  "contact_phone": {
+                    "type": "string",
+                    "example": "03009999999"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Department updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Department"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "404": {
+            "description": "Department not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a department",
+        "tags": [
+          "Departments"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Department ID",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Department deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Department deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Department not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/dashboard": {
+      "get": {
+        "summary": "Get dashboard statistics",
+        "description": "Returns the main dashboard summary including total patients, total doctors, available rooms, occupied rooms, unpaid bills, departments, and recent patients.\n",
+        "tags": [
+          "Dashboard"
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard data loaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalPatients": {
+                      "type": "integer",
+                      "example": 25
+                    },
+                    "totalDoctors": {
+                      "type": "integer",
+                      "example": 8
+                    },
+                    "availableRooms": {
+                      "type": "integer",
+                      "example": 12
+                    },
+                    "occupiedRooms": {
+                      "type": "integer",
+                      "example": 5
+                    },
+                    "unpaidBillsTotal": {
+                      "type": "number",
+                      "format": "float",
+                      "example": 25000
+                    },
+                    "unpaidBillsCount": {
+                      "type": "integer",
+                      "example": 4
+                    },
+                    "departments": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Department"
+                      }
+                    },
+                    "recentPatients": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Patient"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to load dashboard data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Failed to load dashboard data"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Database query failed"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bills": {
+      "get": {
+        "summary": "Get all bills",
+        "tags": [
+          "Billing"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of all bills",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Bill"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new bill",
+        "tags": [
+          "Billing"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "patient_id",
+                  "total_amount",
+                  "payment_status",
+                  "date_issued"
+                ],
+                "properties": {
+                  "patient_id": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "total_amount": {
+                    "type": "number",
+                    "example": 8500
+                  },
+                  "payment_status": {
+                    "type": "string",
+                    "enum": [
+                      "paid",
+                      "unpaid"
+                    ],
+                    "example": "unpaid"
+                  },
+                  "date_issued": {
+                    "type": "string",
+                    "format": "date",
+                    "example": "2026-09-10"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Bill created successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "404": {
+            "description": "Patient not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/bills/{id}": {
+      "get": {
+        "summary": "Get bill by bill number",
+        "tags": [
+          "Billing"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Bill number",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bill details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bill"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bill not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a bill",
+        "tags": [
+          "Billing"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "patient_id",
+                  "total_amount",
+                  "payment_status",
+                  "date_issued"
+                ],
+                "properties": {
+                  "patient_id": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "total_amount": {
+                    "type": "number",
+                    "example": 9500
+                  },
+                  "payment_status": {
+                    "type": "string",
+                    "enum": [
+                      "paid",
+                      "unpaid"
+                    ],
+                    "example": "paid"
+                  },
+                  "date_issued": {
+                    "type": "string",
+                    "format": "date",
+                    "example": "2026-09-10"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bill updated successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "404": {
+            "description": "Bill or patient not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a bill",
+        "tags": [
+          "Billing"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "description": "Bill number",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bill deleted successfully"
+          },
+          "404": {
+            "description": "Bill not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Treatments",
+      "description": "Treatment management APIs"
+    },
+    {
+      "name": "Rooms",
+      "description": "Room management APIs"
+    },
+    {
+      "name": "Patients",
+      "description": "Patient management APIs"
+    },
+    {
+      "name": "Patient Rooms",
+      "description": "Patient room assignment management APIs"
+    },
+    {
+      "name": "Nurses",
+      "description": "Nurse management APIs"
+    },
+    {
+      "name": "Nurse Rooms",
+      "description": "Nurse room assignment management APIs"
+    },
+    {
+      "name": "Doctors",
+      "description": "Doctor management APIs"
+    },
+    {
+      "name": "Departments",
+      "description": "Department management APIs"
+    },
+    {
+      "name": "Dashboard",
+      "description": "Dashboard summary and statistics APIs"
+    },
+    {
+      "name": "Billing",
+      "description": "Billing management APIs"
+    }
+  ]
+}
