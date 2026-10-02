@@ -23,6 +23,7 @@ const app = express();
 // ==============================
 // CORS
 // ==============================
+
 const allowedOrigins = [
   "http://localhost:3000",
   process.env.FRONTEND_URL,
@@ -30,7 +31,21 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin(origin, callback) {
+      // Allow requests without an Origin header
+      // e.g. Swagger, Postman, server-to-server
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(
+        new Error(`CORS blocked for origin: ${origin}`)
+      );
+    },
     credentials: true,
   })
 );
@@ -38,11 +53,13 @@ app.use(
 // ==============================
 // MIDDLEWARE
 // ==============================
+
 app.use(express.json());
 
 // ==============================
 // ROOT ROUTE
 // ==============================
+
 app.get("/", (req, res) => {
   res.status(200).json({
     message: "Hospital Management API is running",
@@ -50,44 +67,42 @@ app.get("/", (req, res) => {
 });
 
 // ==============================
-// SWAGGER
+// HEALTH CHECK
 // ==============================
 
-const swaggerHtml = swaggerUi.generateHTML(
-  swaggerSpec,
-  {
+app.get("/api/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Hospital Management API is healthy",
+    environment: process.env.NODE_ENV || "development",
+  });
+});
+
+// ==============================
+// SWAGGER JSON
+// ==============================
+
+app.get("/api-docs.json", (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+
+  res.status(200).json(swaggerSpec);
+});
+
+// ==============================
+// SWAGGER UI
+// ==============================
+
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
     customSiteTitle: "City Care Hospital API",
-
-    customCssUrl:
-      "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.14/swagger-ui.min.css",
-
-    customJs: [
-      "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.14/swagger-ui-bundle.min.js",
-      "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.14/swagger-ui-standalone-preset.min.js",
-    ],
-
     swaggerOptions: {
       defaultModelsExpandDepth: -1,
+      persistAuthorization: true,
     },
-  }
+  })
 );
-
-app.get(
-  ["/api-docs", "/api-docs/"],
-  (req, res) => {
-    res
-      .status(200)
-      .type("html")
-      .send(swaggerHtml);
-  }
-);
-
-// Swagger JSON
-app.get("/api-docs.json", (req, res) => {
-  res
-    .status(200)
-    .json(swaggerSpec);
-});
 
 // ==============================
 // API ROUTES
@@ -101,20 +116,69 @@ app.use("/api/treatments", treatmentRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/bills", billRoutes);
 app.use("/api/auth", authRoutes);
-app.use("/api/admin/users", adminUserRoutes);
-app.use("/api/nurse-rooms", nurseRoomRoutes);
-app.use("/api/patient-rooms", patientRoomRoutes);
+
+app.use(
+  "/api/admin/users",
+  adminUserRoutes
+);
+
+app.use(
+  "/api/nurse-rooms",
+  nurseRoomRoutes
+);
+
+app.use(
+  "/api/patient-rooms",
+  patientRoomRoutes
+);
+
+// ==============================
+// 404 HANDLER
+// ==============================
+
+app.use((req, res) => {
+  res.status(404).json({
+    message: "Route not found",
+    path: req.originalUrl,
+  });
+});
+
+// ==============================
+// ERROR HANDLER
+// ==============================
+
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err);
+
+  res.status(500).json({
+    message: "Internal server error",
+  });
+});
 
 // ==============================
 // LOCAL SERVER ONLY
 // ==============================
+
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 5000;
 
   app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(
+      `Server running on http://localhost:${PORT}`
+    );
+
+    console.log(
+      `Swagger docs: http://localhost:${PORT}/api-docs`
+    );
+
+    console.log(
+      `Swagger JSON: http://localhost:${PORT}/api-docs.json`
+    );
   });
 }
 
-// Required for deployment platforms like Vercel
+// ==============================
+// EXPORT APP FOR VERCEL
+// ==============================
+
 module.exports = app;
