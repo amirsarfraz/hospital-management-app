@@ -3,10 +3,7 @@
     "buildCommand": "npm run build",
     "functions": {
       "src/server.js": {
-        "includeFiles": [
-          "src/config/swagger-generated.json",
-          "node_modules/swagger-ui-dist/**"
-        ]
+        "includeFiles": "{src/config/swagger-generated.json,node_modules/swagger-ui-dist/**}"
       }
     },
     "rewrites": [
