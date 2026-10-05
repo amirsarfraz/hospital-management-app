@@ -1,9 +1,20 @@
 const swaggerJsdoc = require("swagger-jsdoc");
 const path = require("path");
 
+// ==============================
+// SERVERS
+// ==============================
+
 const productionUrl =
     process.env.BACKEND_URL ||
     "https://hospital-management-app-opal.vercel.app";
+
+// Important:
+// Convert Windows backslashes to forward slashes
+// so swagger-jsdoc glob works on Windows + Linux/Vercel.
+const routesPath = path
+    .resolve(process.cwd(), "src/routes/*.js")
+    .replace(/\\/g, "/");
 
 const options = {
     definition: {
@@ -287,15 +298,15 @@ const options = {
         },
     },
 
-    // swagger.js = src/config/swagger.js
-    // routes     = src/routes/*.js
-    apis: [
-        path.resolve(
-            __dirname,
-            "../routes/*.js"
-        ),
-    ],
+    // All Swagger comments inside src/routes/*.js
+    // will be scanned from here.
+    apis: [routesPath],
 };
+
+console.log(
+    "Swagger scanning routes from:",
+    routesPath
+);
 
 const swaggerSpec =
     swaggerJsdoc(options);

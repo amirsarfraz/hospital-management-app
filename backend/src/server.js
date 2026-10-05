@@ -71,12 +71,9 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: (
-      origin,
-      callback
-    ) => {
-      // Allow requests without Origin header
-      // Swagger, Postman, server-to-server, etc.
+    origin: (origin, callback) => {
+      // Swagger, Postman and
+      // server-to-server requests
       if (!origin) {
         return callback(
           null,
@@ -113,20 +110,15 @@ app.use(
 app.use(express.json());
 
 // ==============================
-// ROOT ROUTE
+// ROOT
 // ==============================
 
-app.get(
-  "/",
-  (req, res) => {
-    res
-      .status(200)
-      .json({
-        message:
-          "Hospital Management API is running",
-      });
-  }
-);
+app.get("/", (req, res) => {
+  res.status(200).json({
+    message:
+      "Hospital Management API is running",
+  });
+});
 
 // ==============================
 // SWAGGER JSON
@@ -137,9 +129,7 @@ app.get(
   (req, res) => {
     res
       .status(200)
-      .json(
-        swaggerSpec
-      );
+      .json(swaggerSpec);
   }
 );
 
@@ -238,48 +228,36 @@ app.use(
 );
 
 // ==============================
-// 404 HANDLER
+// 404
 // ==============================
 
-app.use(
-  (req, res) => {
-    res
-      .status(404)
-      .json({
-        message:
-          "Route not found",
-      });
-  }
-);
+app.use((req, res) => {
+  res.status(404).json({
+    message: "Route not found",
+  });
+});
 
 // ==============================
 // ERROR HANDLER
 // ==============================
 
 app.use(
-  (
-    error,
-    req,
-    res,
-    next
-  ) => {
+  (error, req, res, next) => {
     console.error(
       "Server error:",
       error
     );
 
-    res
-      .status(500)
-      .json({
-        message:
-          error.message ||
-          "Internal server error",
-      });
+    res.status(500).json({
+      message:
+        error.message ||
+        "Internal server error",
+    });
   }
 );
 
 // ==============================
-// LOCAL SERVER ONLY
+// LOCAL SERVER
 // ==============================
 
 if (
@@ -287,25 +265,21 @@ if (
   "production"
 ) {
   const PORT =
-    process.env.PORT ||
-    5000;
+    process.env.PORT || 5000;
 
-  app.listen(
-    PORT,
-    () => {
-      console.log(
-        `Server running on port ${PORT}`
-      );
+  app.listen(PORT, () => {
+    console.log(
+      `Server running on port ${PORT}`
+    );
 
-      console.log(
-        `Swagger UI: http://localhost:${PORT}/api-docs`
-      );
+    console.log(
+      `Swagger UI: http://localhost:${PORT}/api-docs`
+    );
 
-      console.log(
-        `Swagger JSON: http://localhost:${PORT}/api-docs.json`
-      );
-    }
-  );
+    console.log(
+      `Swagger JSON: http://localhost:${PORT}/api-docs.json`
+    );
+  });
 }
 
 // ==============================
