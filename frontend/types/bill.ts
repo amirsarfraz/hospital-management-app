@@ -13,17 +13,11 @@ export type BillPatient = {
   
   export type Bill = {
     bill_number: number;
-  
     patient_id: number;
-  
     total_amount: number;
-  
     payment_status: PaymentStatus;
-  
     date_issued: string;
-  
     created_at?: string;
-  
     patients?: BillPatient | null;
   };
   
