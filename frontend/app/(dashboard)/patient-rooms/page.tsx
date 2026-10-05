@@ -19,11 +19,8 @@ const emptyForm: PatientRoomFormData = {
 
 const initialState: PatientRoomsState = {
   role: null,
-
   assignments: [],
-
   patients: [],
-
   rooms: [],
 
   form: {
@@ -31,11 +28,8 @@ const initialState: PatientRoomsState = {
   },
 
   loading: true,
-
   submitting: false,
-
   modalOpen: false,
-
   deleteAssignment: null,
 
   toast: {
