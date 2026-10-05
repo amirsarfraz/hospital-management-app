@@ -1,15 +1,4 @@
 {
-    "version": 2,
-    "buildCommand": "npm run build",
-    "functions": {
-      "src/server.js": {
-        "includeFiles": "{src/config/swagger-generated.json,node_modules/swagger-ui-dist/**}"
-      }
-    },
-    "rewrites": [
-      {
-        "source": "/(.*)",
-        "destination": "/src/server.js"
-      }
-    ]
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "buildCommand": "npm run build"
   }

@@ -2,9 +2,7 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-const swaggerUi = require(
-  "swagger-ui-express"
-);
+const swaggerUi = require("swagger-ui-express");
 
 const swaggerSpec = require(
   "./config/swagger-generated.json"
@@ -72,24 +70,14 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Swagger, Postman and
-      // server-to-server requests
+      // Allow Swagger, Postman,
+      // server-to-server requests, etc.
       if (!origin) {
-        return callback(
-          null,
-          true
-        );
+        return callback(null, true);
       }
 
-      if (
-        allowedOrigins.includes(
-          origin
-        )
-      ) {
-        return callback(
-          null,
-          true
-        );
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
       }
 
       return callback(
@@ -147,17 +135,10 @@ app.use(
         "City Care Hospital API",
 
       swaggerOptions: {
-        defaultModelsExpandDepth:
-          -1,
-
-        persistAuthorization:
-          true,
-
-        displayRequestDuration:
-          true,
-
-        tryItOutEnabled:
-          true,
+        defaultModelsExpandDepth: -1,
+        persistAuthorization: true,
+        displayRequestDuration: true,
+        tryItOutEnabled: true,
       },
     }
   )
@@ -257,21 +238,21 @@ app.use(
 );
 
 // ==============================
-// LOCAL SERVER
+// START SERVER
 // ==============================
 
-if (
-  process.env.NODE_ENV !==
-  "production"
-) {
-  const PORT =
-    process.env.PORT || 5000;
+const PORT =
+  process.env.PORT || 5000;
 
-  app.listen(PORT, () => {
-    console.log(
-      `Server running on port ${PORT}`
-    );
+app.listen(PORT, () => {
+  console.log(
+    `Server running on port ${PORT}`
+  );
 
+  if (
+    process.env.NODE_ENV !==
+    "production"
+  ) {
     console.log(
       `Swagger UI: http://localhost:${PORT}/api-docs`
     );
@@ -279,11 +260,11 @@ if (
     console.log(
       `Swagger JSON: http://localhost:${PORT}/api-docs.json`
     );
-  });
-}
+  }
+});
 
 // ==============================
-// VERCEL EXPORT
+// EXPORT
 // ==============================
 
 module.exports = app;
