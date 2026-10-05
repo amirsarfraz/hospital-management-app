@@ -2,7 +2,6 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-const swaggerUi = require("swagger-ui-express");
 
 const swaggerSpec = require(
   "./config/swagger-generated.json"
@@ -58,9 +57,9 @@ const patientRoomRoutes = require(
 
 const app = express();
 
-// ==============================
+// ==========================================
 // CORS
-// ==============================
+// ==========================================
 
 const allowedOrigins = [
   "http://localhost:3000",
@@ -73,11 +72,21 @@ app.use(
       // Allow Swagger, Postman,
       // server-to-server requests, etc.
       if (!origin) {
-        return callback(null, true);
+        return callback(
+          null,
+          true
+        );
       }
 
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
+      if (
+        allowedOrigins.includes(
+          origin
+        )
+      ) {
+        return callback(
+          null,
+          true
+        );
       }
 
       return callback(
@@ -91,15 +100,15 @@ app.use(
   })
 );
 
-// ==============================
+// ==========================================
 // MIDDLEWARE
-// ==============================
+// ==========================================
 
 app.use(express.json());
 
-// ==============================
+// ==========================================
 // ROOT
-// ==============================
+// ==========================================
 
 app.get("/", (req, res) => {
   res.status(200).json({
@@ -108,9 +117,9 @@ app.get("/", (req, res) => {
   });
 });
 
-// ==============================
+// ==========================================
 // SWAGGER JSON
-// ==============================
+// ==========================================
 
 app.get(
   "/api-docs.json",
@@ -121,32 +130,131 @@ app.get(
   }
 );
 
-// ==============================
+// ==========================================
 // SWAGGER UI
-// ==============================
+// Local + Vercel compatible
+// ==========================================
 
-app.use(
-  "/api-docs",
-  swaggerUi.serve,
-  swaggerUi.setup(
-    swaggerSpec,
-    {
-      customSiteTitle:
-        "City Care Hospital API",
+const swaggerHtml = `
+<!DOCTYPE html>
 
-      swaggerOptions: {
-        defaultModelsExpandDepth: -1,
-        persistAuthorization: true,
-        displayRequestDuration: true,
-        tryItOutEnabled: true,
-      },
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>
+    City Care Hospital API
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css"
+  />
+
+  <style>
+
+    html {
+      box-sizing: border-box;
+      overflow-y: scroll;
     }
-  )
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: inherit;
+    }
+
+    body {
+      margin: 0;
+      background: #fafafa;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <div id="swagger-ui"></div>
+
+  <script
+    src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"
+  ></script>
+
+  <script
+    src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"
+  ></script>
+
+  <script>
+
+    window.onload = function () {
+
+      SwaggerUIBundle({
+
+        url: "/api-docs.json",
+
+        dom_id: "#swagger-ui",
+
+        deepLinking: true,
+
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+
+        plugins: [
+          SwaggerUIBundle.plugins.DownloadUrl
+        ],
+
+        layout:
+          "StandaloneLayout",
+
+        persistAuthorization:
+          true,
+
+        displayRequestDuration:
+          true,
+
+        defaultModelsExpandDepth:
+          -1,
+
+        tryItOutEnabled:
+          true
+
+      });
+
+    };
+
+  </script>
+
+</body>
+
+</html>
+`;
+
+app.get(
+  [
+    "/api-docs",
+    "/api-docs/",
+  ],
+  (req, res) => {
+    res
+      .status(200)
+      .type("html")
+      .send(swaggerHtml);
+  }
 );
 
-// ==============================
+// ==========================================
 // API ROUTES
-// ==============================
+// ==========================================
 
 app.use(
   "/api/departments",
@@ -208,9 +316,9 @@ app.use(
   patientRoomRoutes
 );
 
-// ==============================
+// ==========================================
 // 404
-// ==============================
+// ==========================================
 
 app.use((req, res) => {
   res.status(404).json({
@@ -218,12 +326,17 @@ app.use((req, res) => {
   });
 });
 
-// ==============================
+// ==========================================
 // ERROR HANDLER
-// ==============================
+// ==========================================
 
 app.use(
-  (error, req, res, next) => {
+  (
+    error,
+    req,
+    res,
+    next
+  ) => {
     console.error(
       "Server error:",
       error
@@ -237,34 +350,37 @@ app.use(
   }
 );
 
-// ==============================
-// START SERVER
-// ==============================
+// ==========================================
+// LOCAL SERVER ONLY
+// ==========================================
 
-const PORT =
-  process.env.PORT || 5000;
+if (
+  process.env.NODE_ENV !==
+  "production"
+) {
+  const PORT =
+    process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(
-    `Server running on port ${PORT}`
+  app.listen(
+    PORT,
+    () => {
+      console.log(
+        `Server running on port ${PORT}`
+      );
+
+      console.log(
+        `Swagger UI: http://localhost:${PORT}/api-docs`
+      );
+
+      console.log(
+        `Swagger JSON: http://localhost:${PORT}/api-docs.json`
+      );
+    }
   );
+}
 
-  if (
-    process.env.NODE_ENV !==
-    "production"
-  ) {
-    console.log(
-      `Swagger UI: http://localhost:${PORT}/api-docs`
-    );
-
-    console.log(
-      `Swagger JSON: http://localhost:${PORT}/api-docs.json`
-    );
-  }
-});
-
-// ==============================
-// EXPORT
-// ==============================
+// ==========================================
+// VERCEL EXPORT
+// ==========================================
 
 module.exports = app;
