@@ -1,6 +1,4 @@
-import type {
-    PatientRoomTableProps,
-  } from "@/types/patientRoom";
+import type { PatientRoomTableProps } from "@/types/patientRoom";
   
   export default function PatientRoomTable({
     assignments,

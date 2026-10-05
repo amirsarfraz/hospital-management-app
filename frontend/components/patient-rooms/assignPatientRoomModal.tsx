@@ -1,11 +1,8 @@
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
-
 import type { Patient } from "@/types/patient";
 import type { Room } from "@/types/room";
-import type {
-  PatientRoomFormData,
-} from "@/types/patientRoom";
+import type { PatientRoomFormData } from "@/types/patientRoom";
 
 interface Props {
   open: boolean;

@@ -1,26 +1,11 @@
 "use client";
-
-import {
-  useEffect,
-  useState,
-} from "react";
-
-import {
-  getDepartments,
-  createDepartment,
-  updateDepartment,
-  deleteDepartment,
-} from "@/services/departmentService";
-
+import { useEffect,useState } from "react";
+import { getDepartments,createDepartment,updateDepartment,deleteDepartment } from "@/services/departmentService";
 import DepartmentForm from "@/components/departments/DepartmentForm";
 import DepartmentTable from "@/components/departments/DepartmentTable";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import Toast from "@/components/ui/Toast";
-
-import type {
-  Department,
-  DepartmentsState,
-} from "@/types/department";
+import type { Department,DepartmentsState } from "@/types/department";
 import type { UserRole } from "@/types/user";
 
 const emptyForm = {

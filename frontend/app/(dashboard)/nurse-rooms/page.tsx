@@ -1,77 +1,104 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
-
+import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import Toast from "@/components/ui/Toast";
-
 import NurseRoomTable from "@/components/nurse-rooms/nurseRoomTable";
 import AssignNurseRoomModal from "@/components/nurse-rooms/assignNurseRoomModal";
-
-import {
-  getNurseRooms,
-  assignNurseRoom,
-  deleteNurseRoom,
-} from "@/services/nurseRoomService";
-
+import { getNurseRooms, assignNurseRoom, deleteNurseRoom } from "@/services/nurseRoomService";
 import { getNurses } from "@/services/nurseService";
 import { getRooms } from "@/services/roomService";
-
-import type { Nurse } from "@/types/nurse";
-import type { Room } from "@/types/room";
 import type { UserRole } from "@/types/user";
+import type { NurseRoomFormData, NurseRoomsState } from "@/types/nurseRoom";
 
-import type {
-  NurseRoomAssignment,
-  NurseRoomFormData,
-} from "@/types/nurseRoom";
+// ==========================================
+// EMPTY FORM
+// ==========================================
 
 const emptyForm: NurseRoomFormData = {
   nurse_id: "",
   room_number: "",
 };
 
-export default function NurseRoomsPage() {
-  const [role, setRole] =
-    useState<UserRole | null>(null);
+// ==========================================
+// INITIAL STATE
+// ==========================================
 
-  const [assignments, setAssignments] =
-    useState<NurseRoomAssignment[]>([]);
+const initialState: NurseRoomsState = {
+  role: null,
+  assignments: [],
+  nurses: [],
+  rooms: [],
+  form: {
+    ...emptyForm,
+  },
 
-  const [nurses, setNurses] =
-    useState<Nurse[]>([]);
+  loading: true,
+  submitting: false,
+  modalOpen: false,
+  deleteAssignment: null,
 
-  const [rooms, setRooms] =
-    useState<Room[]>([]);
-
-  const [form, setForm] =
-    useState<NurseRoomFormData>(emptyForm);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [submitting, setSubmitting] =
-    useState(false);
-
-  const [modalOpen, setModalOpen] =
-    useState(false);
-
-  const [deleteAssignment, setDeleteAssignment] =
-    useState<NurseRoomAssignment | null>(null);
-
-  const [toast, setToast] = useState({
+  toast: {
     show: false,
     message: "",
-    type: "success" as "success" | "error",
-  });
+    type: "success",
+  },
+};
+
+export default function NurseRoomsPage() {
+  const [
+    state,
+    setState,
+  ] =
+    useState<NurseRoomsState>(
+      initialState
+    );
+
+  // ========================================
+  // STATE VALUES
+  // ========================================
+
+  const {
+    role,
+    assignments,
+    nurses,
+    rooms,
+    form,
+    loading,
+    submitting,
+    modalOpen,
+    deleteAssignment,
+    toast,
+  } = state;
+
+  // ========================================
+  // UPDATE STATE HELPER
+  // ========================================
+
+  const updateState = <
+    K extends keyof NurseRoomsState
+  >(
+    field: K,
+    value: NurseRoomsState[K]
+  ) => {
+    setState((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  // ========================================
+  // PERMISSIONS
+  // ========================================
 
   const canManage =
     role === "admin" ||
     role === "manager";
+
+  // ========================================
+  // GET ROLE
+  // ========================================
 
   useEffect(() => {
     const storedRole =
@@ -79,23 +106,52 @@ export default function NurseRoomsPage() {
         "role"
       ) as UserRole | null;
 
-    setRole(storedRole);
+    updateState(
+      "role",
+      storedRole
+    );
   }, []);
+
+  // ========================================
+  // TOAST
+  // ========================================
 
   const showToast = (
     message: string,
-    type: "success" | "error" = "success"
+    type:
+      | "success"
+      | "error" = "success"
   ) => {
-    setToast({
-      show: true,
-      message,
-      type,
-    });
+    updateState(
+      "toast",
+      {
+        show: true,
+        message,
+        type,
+      }
+    );
   };
+
+  const closeToast = () => {
+    updateState(
+      "toast",
+      {
+        ...toast,
+        show: false,
+      }
+    );
+  };
+
+  // ========================================
+  // LOAD DATA
+  // ========================================
 
   const loadData = async () => {
     try {
-      setLoading(true);
+      updateState(
+        "loading",
+        true
+      );
 
       const [
         assignmentData,
@@ -107,9 +163,18 @@ export default function NurseRoomsPage() {
         getRooms(),
       ]);
 
-      setAssignments(assignmentData);
-      setNurses(nurseData);
-      setRooms(roomData);
+      setState((prev) => ({
+        ...prev,
+
+        assignments:
+          assignmentData,
+
+        nurses:
+          nurseData,
+
+        rooms:
+          roomData,
+      }));
     } catch (error) {
       showToast(
         error instanceof Error
@@ -118,7 +183,10 @@ export default function NurseRoomsPage() {
         "error"
       );
     } finally {
-      setLoading(false);
+      updateState(
+        "loading",
+        false
+      );
     }
   };
 
@@ -126,16 +194,64 @@ export default function NurseRoomsPage() {
     loadData();
   }, []);
 
+  // ========================================
+  // OPEN ASSIGN MODAL
+  // ========================================
+
+  const openAssignModal = () => {
+    setState((prev) => ({
+      ...prev,
+
+      form: {
+        ...emptyForm,
+      },
+
+      modalOpen: true,
+    }));
+  };
+
+  // ========================================
+  // CLOSE ASSIGN MODAL
+  // ========================================
+
+  const closeAssignModal = () => {
+    setState((prev) => ({
+      ...prev,
+
+      modalOpen: false,
+
+      form: {
+        ...emptyForm,
+      },
+    }));
+  };
+
+  // ========================================
+  // FORM CHANGE
+  // ========================================
+
   const handleChange = (
     e: React.ChangeEvent<HTMLSelectElement>
   ) => {
-    const { name, value } = e.target;
+    const {
+      name,
+      value,
+    } = e.target;
 
-    setForm((prev) => ({
+    setState((prev) => ({
       ...prev,
-      [name]: value,
+
+      form: {
+        ...prev.form,
+
+        [name]: value,
+      },
     }));
   };
+
+  // ========================================
+  // ASSIGN NURSE
+  // ========================================
 
   const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement>
@@ -155,16 +271,33 @@ export default function NurseRoomsPage() {
     }
 
     try {
-      setSubmitting(true);
-
-      await assignNurseRoom(form);
-
-      showToast(
-        "Nurse assigned to room successfully."
+      updateState(
+        "submitting",
+        true
       );
 
-      setModalOpen(false);
-      setForm(emptyForm);
+      await assignNurseRoom(
+        form
+      );
+
+      setState((prev) => ({
+        ...prev,
+
+        modalOpen: false,
+
+        form: {
+          ...emptyForm,
+        },
+
+        toast: {
+          show: true,
+
+          message:
+            "Nurse assigned to room successfully.",
+
+          type: "success",
+        },
+      }));
 
       await loadData();
     } catch (error) {
@@ -175,9 +308,41 @@ export default function NurseRoomsPage() {
         "error"
       );
     } finally {
-      setSubmitting(false);
+      updateState(
+        "submitting",
+        false
+      );
     }
   };
+
+  // ========================================
+  // OPEN DELETE MODAL
+  // ========================================
+
+  const openDeleteModal = (
+    assignment:
+      NurseRoomsState["deleteAssignment"]
+  ) => {
+    updateState(
+      "deleteAssignment",
+      assignment
+    );
+  };
+
+  // ========================================
+  // CLOSE DELETE MODAL
+  // ========================================
+
+  const closeDeleteModal = () => {
+    updateState(
+      "deleteAssignment",
+      null
+    );
+  };
+
+  // ========================================
+  // DELETE ASSIGNMENT
+  // ========================================
 
   const handleDelete = async () => {
     if (!deleteAssignment) {
@@ -185,17 +350,29 @@ export default function NurseRoomsPage() {
     }
 
     try {
-      setSubmitting(true);
+      updateState(
+        "submitting",
+        true
+      );
 
       await deleteNurseRoom(
         deleteAssignment.nurse_room_id
       );
 
-      setDeleteAssignment(null);
+      setState((prev) => ({
+        ...prev,
 
-      showToast(
-        "Nurse room assignment removed."
-      );
+        deleteAssignment: null,
+
+        toast: {
+          show: true,
+
+          message:
+            "Nurse room assignment removed.",
+
+          type: "success",
+        },
+      }));
 
       await loadData();
     } catch (error) {
@@ -206,9 +383,16 @@ export default function NurseRoomsPage() {
         "error"
       );
     } finally {
-      setSubmitting(false);
+      updateState(
+        "submitting",
+        false
+      );
     }
   };
+
+  // ========================================
+  // UI
+  // ========================================
 
   return (
     <div className="space-y-6">
@@ -225,10 +409,9 @@ export default function NurseRoomsPage() {
 
         {canManage && (
           <Button
-            onClick={() => {
-              setForm(emptyForm);
-              setModalOpen(true);
-            }}
+            onClick={
+              openAssignModal
+            }
           >
             + Assign Nurse
           </Button>
@@ -241,9 +424,15 @@ export default function NurseRoomsPage() {
         </div>
       ) : (
         <NurseRoomTable
-          assignments={assignments}
-          canManage={canManage}
-          onDelete={setDeleteAssignment}
+          assignments={
+            assignments
+          }
+          canManage={
+            canManage
+          }
+          onDelete={
+            openDeleteModal
+          }
         />
       )}
 
@@ -253,35 +442,44 @@ export default function NurseRoomsPage() {
         nurses={nurses}
         rooms={rooms}
         loading={submitting}
-        onChange={handleChange}
-        onSubmit={handleSubmit}
-        onClose={() => {
-          setModalOpen(false);
-          setForm(emptyForm);
-        }}
+        onChange={
+          handleChange
+        }
+        onSubmit={
+          handleSubmit
+        }
+        onClose={
+          closeAssignModal
+        }
       />
 
       <ConfirmModal
-        open={deleteAssignment !== null}
+        open={
+          deleteAssignment !==
+          null
+        }
         title="Remove Assignment"
         message="Are you sure you want to remove this nurse from the room?"
         confirmText="Remove"
         loading={submitting}
-        onConfirm={handleDelete}
-        onCancel={() =>
-          setDeleteAssignment(null)
+        onConfirm={
+          handleDelete
+        }
+        onCancel={
+          closeDeleteModal
         }
       />
 
       {toast.show && (
         <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() =>
-            setToast((prev) => ({
-              ...prev,
-              show: false,
-            }))
+          message={
+            toast.message
+          }
+          type={
+            toast.type
+          }
+          onClose={
+            closeToast
           }
         />
       )}

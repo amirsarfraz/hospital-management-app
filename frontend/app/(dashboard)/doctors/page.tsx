@@ -1,32 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import Toast from "@/components/ui/Toast";
-
-import {
-  getDoctors,
-  createDoctor,
-  updateDoctor,
-  deleteDoctor,
-} from "@/services/doctorService";
-
-import {
-  getDepartments,
-} from "@/services/departmentService";
-import type {
-  UserRole,
-} from "@/types/user";
-
-import type {
-  Doctor,
-  DoctorFormData,
-  DoctorsState,
-} from "@/types/doctor";
+import { getDoctors,createDoctor,updateDoctor,deleteDoctor } from "@/services/doctorService";
+import { getDepartments } from "@/services/departmentService";
+import type { UserRole } from "@/types/user";
+import type { Doctor,DoctorFormData,DoctorsState } from "@/types/doctor";
 
 const emptyForm: DoctorFormData = {
   first_name: "",

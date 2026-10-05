@@ -1,12 +1,7 @@
 "use client";
 
-import {
-  useRouter,
-} from "next/navigation";
-
-import {
-  authService,
-} from "@/services/authService";
+import { useRouter } from "next/navigation";
+import { authService } from "@/services/authService";
 
 export default function AdminHeader() {
   const router = useRouter();

@@ -11,7 +11,6 @@ export type Nurse = {
   contact_number: string | null;
   department_id: number;
   created_at?: string;
-
   departments?: Department | null;
 };
 

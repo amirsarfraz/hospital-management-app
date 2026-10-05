@@ -1,32 +1,15 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect,useState } from "react";
 import type { UserRole } from "@/types/user";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import Toast from "@/components/ui/Toast";
-
-import {
-  getBills,
-  createBill,
-  updateBill,
-  deleteBill,
-} from "@/services/billService";
-
-import {
-  getPatients,
-} from "@/services/patientService";
-
-import type {
-  Bill,
-  BillFormData,
-  BillingState,
-} from "@/types/bill";
+import { getBills,createBill,updateBill,deleteBill } from "@/services/billService";
+import { getPatients } from "@/services/patientService";
+import type { Bill,BillFormData,BillingState } from "@/types/bill";
 
 const emptyForm: BillFormData = {
   patient_id: "",

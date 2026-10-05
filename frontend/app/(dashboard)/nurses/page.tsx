@@ -1,32 +1,15 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect,useState } from "react";
 import type { UserRole } from "@/types/user";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import Toast from "@/components/ui/Toast";
-
-import {
-  getNurses,
-  createNurse,
-  updateNurse,
-  deleteNurse,
-} from "@/services/nurseService";
-
-import {
-  getDepartments,
-} from "@/services/departmentService";
-
-import type {
-  Nurse,
-  NurseFormData,
-  NursesState,
-} from "@/types/nurse";
+import { getNurses,createNurse,updateNurse,deleteNurse } from "@/services/nurseService";
+import { getDepartments } from "@/services/departmentService";
+import type { Nurse,NurseFormData,NursesState } from "@/types/nurse";
 
 const emptyForm: NurseFormData = {
   first_name: "",

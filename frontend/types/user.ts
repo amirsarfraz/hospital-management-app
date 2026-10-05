@@ -100,21 +100,15 @@ export type RegisterState = {
 
 export type AdminUsersState = {
   users: User[];
-
   loading: boolean;
   submitting: boolean;
   deleteLoading: boolean;
-
   error: string;
-
   search: string;
   roleFilter: UserRole | "";
-
   updatingId: string | null;
-
   modalOpen: boolean;
   editingUser: User | null;
   deleteUser: User | null;
-
   form: AdminUserForm;
 };
