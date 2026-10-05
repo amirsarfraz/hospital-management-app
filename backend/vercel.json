@@ -1,15 +1,18 @@
 {
     "version": 2,
-    "builds": [
-      {
-        "src": "src/server.js",
-        "use": "@vercel/node"
+    "buildCommand": "npm run build",
+    "functions": {
+      "src/server.js": {
+        "includeFiles": [
+          "src/config/swagger-generated.json",
+          "node_modules/swagger-ui-dist/**"
+        ]
       }
-    ],
-    "routes": [
+    },
+    "rewrites": [
       {
-        "src": "/(.*)",
-        "dest": "src/server.js"
+        "source": "/(.*)",
+        "destination": "/src/server.js"
       }
     ]
   }
