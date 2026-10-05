@@ -1,17 +1,8 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
-
-import {
-  getAdminDashboardStats,
-} from "@/services/adminDashboardService";
-
-import type {
-  AdminDashboardStats,
-} from "@/services/adminDashboardService";
+import {useEffect,useState } from "react";
+import { getAdminDashboardStats } from "@/services/adminDashboardService";
+import type { AdminDashboardStats } from "@/services/adminDashboardService";
 
 export default function AdminPage() {
   const [

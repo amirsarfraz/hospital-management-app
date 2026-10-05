@@ -6,7 +6,6 @@ import { supabase } from "@/lib/supabase";
 
 export default function GuestPage() {
   const router = useRouter();
-
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -20,8 +19,6 @@ export default function GuestPage() {
         setError(error.message);
         return;
       }
-
-      console.log("Anonymous user:", data.user);
 
       router.replace("/dashboard");
       router.refresh();

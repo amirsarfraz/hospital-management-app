@@ -1,26 +1,9 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
-
-import type {
-  SyntheticEvent,
-} from "react";
-
-import {
-  adminService,
-} from "@/services/adminService";
-
-import type {
-  AdminUsersState,
-  CreateUserPayload,
-  UpdateUserPayload,
-  User,
-  UserRole,
-} from "@/types/user";
+import { useCallback, useEffect, useState } from "react";
+import type { SyntheticEvent } from "react";
+import { adminService } from "@/services/adminService";
+import type { AdminUsersState, CreateUserPayload, UpdateUserPayload, User, UserRole } from "@/types/user";
 
 const roles: UserRole[] = [
   "admin",
@@ -41,22 +24,16 @@ export default function AdminUsersPage() {
   const [state, setState] =
     useState<AdminUsersState>({
       users: [],
-
       loading: true,
       submitting: false,
       deleteLoading: false,
-
       error: "",
-
       search: "",
       roleFilter: "",
-
       updatingId: null,
-
       modalOpen: false,
       editingUser: null,
       deleteUser: null,
-
       form: initialForm,
     });
 
@@ -146,9 +123,7 @@ export default function AdminUsersPage() {
   const openAddModal = () => {
     setState((prev) => ({
       ...prev,
-
       modalOpen: true,
-
       editingUser: null,
 
       form: {
@@ -170,23 +145,17 @@ export default function AdminUsersPage() {
       ...prev,
 
       modalOpen: true,
-
       editingUser: user,
-
       error: "",
 
       form: {
         first_name:
           user.first_name || "",
-
         last_name:
           user.last_name || "",
-
         email:
           user.email || "",
-
         password: "",
-
         role:
           user.role,
       },
@@ -204,11 +173,8 @@ export default function AdminUsersPage() {
 
     setState((prev) => ({
       ...prev,
-
       modalOpen: false,
-
       editingUser: null,
-
       form: {
         ...initialForm,
       },
@@ -308,13 +274,10 @@ export default function AdminUsersPage() {
           UpdateUserPayload = {
           first_name:
             form.first_name.trim(),
-
           last_name:
             form.last_name.trim(),
-
           email:
             form.email.trim(),
-
           role:
             form.role,
         };
@@ -335,16 +298,12 @@ export default function AdminUsersPage() {
           CreateUserPayload = {
           first_name:
             form.first_name.trim(),
-
           last_name:
             form.last_name.trim(),
-
           email:
             form.email.trim(),
-
           password:
             form.password,
-
           role:
             form.role,
         };
@@ -613,19 +572,15 @@ export default function AdminUsersPage() {
                   <th className="px-5 py-3 text-left text-sm font-semibold text-slate-600">
                     Name
                   </th>
-
                   <th className="px-5 py-3 text-left text-sm font-semibold text-slate-600">
                     Email
                   </th>
-
                   <th className="px-5 py-3 text-left text-sm font-semibold text-slate-600">
                     Role
                   </th>
-
                   <th className="px-5 py-3 text-left text-sm font-semibold text-slate-600">
                     Created
                   </th>
-
                   <th className="px-5 py-3 text-right text-sm font-semibold text-slate-600">
                     Actions
                   </th>

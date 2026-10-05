@@ -16,13 +16,10 @@ export type Department = {
   export type DashboardData = {
     totalPatients: number;
     totalDoctors: number;
-  
     availableRooms: number;
     occupiedRooms: number;
-  
     unpaidBillsTotal: number;
     unpaidBillsCount: number;
-  
     departments: Department[];
     recentPatients: Patient[];
   };

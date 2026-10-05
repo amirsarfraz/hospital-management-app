@@ -3,11 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-
-
-import type {
-  CurrentUserState,
-} from "@/types/user";
+import type { CurrentUserState } from "@/types/user";
 
 export default function CurrentUserPage() {
   const router = useRouter();

@@ -1,19 +1,9 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
-
+import { useEffect,useState } from "react";
 import { useRouter } from "next/navigation";
-
-import {
-  apiRequest,
-} from "@/lib/api";
-
-import type {
-  AuthUserResponse,
-} from "@/types/user";
+import { apiRequest } from "@/lib/api";
+import type { AuthUserResponse } from "@/types/user";
 
 export default function AdminGuard({
   children,

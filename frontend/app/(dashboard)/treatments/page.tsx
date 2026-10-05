@@ -7,26 +7,10 @@ import Modal from "@/components/ui/Modal";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import Toast from "@/components/ui/Toast";
 import type { UserRole } from "@/types/user";
-import {
-  getTreatments,
-  createTreatment,
-  updateTreatment,
-  deleteTreatment,
-} from "@/services/treatmentService";
-
-import {
-  getPatients,
-} from "@/services/patientService";
-
-import {
-  getDoctors,
-} from "@/services/doctorService";
-
-import type {
-  Treatment,
-  TreatmentFormData,
-  TreatmentsState,
-} from "@/types/treatment";
+import { getTreatments,createTreatment,updateTreatment,deleteTreatment } from "@/services/treatmentService";
+import { getPatients } from "@/services/patientService";
+import { getDoctors } from "@/services/doctorService";
+import type { Treatment,TreatmentFormData,TreatmentsState } from "@/types/treatment";
 
 const emptyForm: TreatmentFormData = {
   patient_id: "",

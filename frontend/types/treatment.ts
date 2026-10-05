@@ -21,20 +21,13 @@ export type TreatmentDoctor = {
 
 export type Treatment = {
   treatment_id: number;
-
   patient_id: number;
   doctor_id: number;
-
   treatment_date: string;
-
   diagnosis: string;
-
   medication: string | null;
-
   created_at?: string;
-
   patients?: TreatmentPatient | null;
-
   doctors?: TreatmentDoctor | null;
 };
 

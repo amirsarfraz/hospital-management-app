@@ -6,23 +6,9 @@ import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import Toast from "@/components/ui/Toast";
-
-import {
-  getPatients,
-  createPatient,
-  updatePatient,
-  deletePatient,
-} from "@/services/patientService";
-
-import type {
-  Patient,
-  PatientFormData,
-  PatientsState,
-} from "@/types/patient";
-
-import type {
-  UserRole,
-} from "@/types/user";
+import { getPatients, createPatient,updatePatient,deletePatient } from "@/services/patientService";
+import type { Patient,PatientFormData,PatientsState } from "@/types/patient";
+import type { UserRole } from "@/types/user";
 
 const emptyForm: PatientFormData = {
   first_name: "",

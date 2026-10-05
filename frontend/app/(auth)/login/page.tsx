@@ -1,22 +1,13 @@
 "use client";
 
-import {
-  useEffect,
-  useState,
-} from "react";
-
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
 import { supabase } from "@/lib/supabase";
 import { apiRequest } from "@/lib/api";
-
-import type {
-  AuthUserResponse,
-} from "@/types/user";
+import type { AuthUserResponse} from "@/types/user";
 
 export default function LoginPage() {
   const router = useRouter();
-
   const [state, setState] = useState({
     email: "",
     password: "",
@@ -24,8 +15,7 @@ export default function LoginPage() {
     loading: false,
   });
 
-  const [checkingSession, setCheckingSession] =
-    useState(true);
+  const [checkingSession, setCheckingSession] =useState(true);
 
   const {
     email,

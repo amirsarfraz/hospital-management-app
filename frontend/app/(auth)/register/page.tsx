@@ -1,19 +1,13 @@
 "use client";
 
 import { useState } from "react";
-
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
 import { registerUser } from "@/lib/auth";
-
-import type {
-  RegisterState,
-} from "@/types/user";
+import type {  RegisterState} from "@/types/user";
 
 export default function RegisterPage() {
   const router = useRouter();
-
   const [state, setState] =
     useState<RegisterState>({
       fullName: "",
@@ -107,11 +101,7 @@ export default function RegisterPage() {
         email,
         password
       );
-
-      /**
-       * If email confirmation is enabled,
-       * session may be null.
-       */
+      
       if (!data.session) {
         updateState(
           "success",
